@@ -192,6 +192,7 @@
     max-width: 240px;
   }
   .tt-industry { background: #0f1219; border-top: 1px solid #1e2330; padding: 12px 14px; }
+
 </style>
 </head>
 <body>
@@ -216,10 +217,15 @@
 <div class="content active" id="tab-data">
   <div class="table-controls">
     <span class="section-label">Tier 필터</span>
-    <span class="tier-badge t1" onclick="buildTable('T1')">● T1 핵심</span>
-    <span class="tier-badge t2" onclick="buildTable('T2')">● T2 주요</span>
-    <span class="tier-badge t3" onclick="buildTable('T3')">● T3 감시</span>
-    <span class="tier-badge all" onclick="buildTable('ALL')">전체</span>
+    <span class="tier-badge t1" onclick="filterTable('T1')">● T1 핵심</span>
+    <span class="tier-badge t2" onclick="filterTable('T2')">● T2 주요</span>
+    <span class="tier-badge t3" onclick="filterTable('T3')">● T3 감시</span>
+    <span class="tier-badge all" onclick="filterTable('ALL')">전체</span>
+    <input id="broker-search" type="text" placeholder="브로커 검색..." oninput="filterTable('SEARCH')"
+      style="margin-left:8px;background:#0d0f14;border:1px solid #1e2330;border-radius:4px;
+      padding:5px 10px;color:#e2e8f0;font-family:'Noto Sans KR',sans-serif;font-size:11px;
+      outline:none;width:140px;transition:border 0.15s;"
+      onfocus="this.style.borderColor='#38bdf8'" onblur="this.style.borderColor='#1e2330'">
   </div>
   <div class="table-wrap">
     <table>
@@ -239,12 +245,30 @@
 
 <div class="content" id="tab-chart">
   <div class="chart-controls" id="broker-toggles"></div>
-  <div class="chart-container">
-    <canvas id="traffic-chart"></canvas>
+  <div style="display:flex;gap:16px;align-items:flex-start">
+    <div class="chart-container" style="flex:1;min-width:0">
+      <canvas id="traffic-chart"></canvas>
+    </div>
+    <div id="side-panel" style="width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow-y:auto;min-height:300px;max-height:480px;">
+      <!-- default: rank view -->
+      <div id="side-rank">
+        <div style="padding:12px 14px 6px;font-size:9px;font-family:IBM Plex Mono,monospace;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;">최신 순위 (26.05)</div>
+        <div id="rank-list" style="padding:0 14px 12px"></div>
+      </div>
+      <!-- detail view -->
+      <div id="side-detail" style="display:none">
+        <div id="side-nav" style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #1e2330;background:#0a0c10">
+          <button onclick="navMonth(-1)" style="background:#1a1f2e;border:1px solid #2a3040;color:#e2e8f0;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px">◀</button>
+          <span id="side-nav-period" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);font-weight:600;letter-spacing:0.12em"></span>
+          <button onclick="navMonth(1)" style="background:#1a1f2e;border:1px solid #2a3040;color:#e2e8f0;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px">▶</button>
+        </div>
+        <div id="side-detail-body"></div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="custom-tooltip" id="tooltip"></div>
+<div class="custom-tooltip" id="tooltip" style="display:none!important"></div>
 
 <script>
 const PERIODS = ["25.03","25.04","25.05","25.06","25.07","25.08","25.09","25.10","25.11","26.01","26.02","26.04","26.05"];
@@ -363,7 +387,7 @@ const EVENTS = {
     brokerNews: [
       { broker:"인피녹스", text:"Tiago da Costa Cardoso, 커머셜 디렉터로 INFINOX 복귀", url:"https://fxnewsgroup.com/forex-news/executives/exclusive-tiago-da-costa-cardoso-returns-to-infinox-as-commercial-director/" },
       { broker:"XM", text:"XM CMO 파노스 람프라코스, 15주년·캐시백 프로모션 사업 방향 인터뷰", url:"https://fxnewsgroup.com/forex-news/retail-forex/xm-cmo-panos-lamprakos-on-15-years-in-business-cashback-promotions-and-more/" },
-      { broker:"Vantage", text:"밴티지, 원화 입금 시 얼굴인증 시스템 도입", url:"https://antfx.kr/notice/밴티지-원화입금시-얼굴인증-시스템-도입/" },
+      { broker:"Vantage", text:"밴티지, 원화 입금 시 얼굴인증 시스템 도입", url:"https://www.vantagemarkets.com/ko/forex-trading/vantage-app/" },
     ],
     industry: [
       { text:"인피녹스, 잉글랜드 프리미어리그 토트넘 홋스퍼와 스폰서십 계약 체결", url:"https://www.financemagnates.com/forex/infinox-inks-sponsorship-deal-with-english-premier-league-club-tottenham-hotspur/" },
@@ -426,12 +450,13 @@ function heatColor(val, mn, mx) {
   return { bg:"#111420", fg:"#374151" };
 }
 
-function buildTable(filterTier = 'ALL') {
+function buildTable(filterTier = 'ALL', searchQ = '') {
   const tbody = document.getElementById('data-tbody');
   tbody.innerHTML = '';
   brokerList.forEach(broker => {
     const tier = getTier(broker);
-    if (filterTier !== 'ALL' && tier !== filterTier) return;
+    if (filterTier !== 'ALL' && filterTier !== 'SEARCH' && tier !== filterTier) return;
+    if (searchQ && !broker.toLowerCase().includes(searchQ.toLowerCase())) return;
     const vals = RAW[broker];
     const nums = vals.filter(v => v !== null);
     const mn = Math.min(...nums), mx = Math.max(...nums);
@@ -450,6 +475,11 @@ function buildTable(filterTier = 'ALL') {
     });
     tbody.appendChild(tr);
   });
+}
+
+function filterTable(tier) {
+  const q = document.getElementById('broker-search')?.value || '';
+  buildTable(tier, q);
 }
 buildTable();
 
@@ -492,23 +522,139 @@ function makeDatasets() {
   }));
 }
 
+
+// Vertical event line plugin
+const EVENT_LINES = {
+  6:  { label: "M4Markets\n카피트레이딩 사고", color: "#f87171" },
+  10: { label: "이지스퀘어\n급등", color: "#fbbf24" },
+};
+
+const verticalLinePlugin = {
+  id: 'verticalLines',
+  afterDraw(chartInst) {
+    const ctx = chartInst.ctx;
+    const xAxis = chartInst.scales.x;
+    const yAxis = chartInst.scales.y;
+    Object.entries(EVENT_LINES).forEach(([idxStr, ev]) => {
+      const idx = parseInt(idxStr);
+      const x = xAxis.getPixelForValue(idx);
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = ev.color + '66';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, yAxis.top);
+      ctx.lineTo(x, yAxis.bottom);
+      ctx.stroke();
+      // label at top
+      ctx.setLineDash([]);
+      ctx.font = "9px 'IBM Plex Mono', monospace";
+      ctx.fillStyle = ev.color + 'cc';
+      ctx.textAlign = 'center';
+      const lines = ev.label.split('\n');
+      lines.forEach((line, i) => {
+        ctx.fillText(line, x, yAxis.top + 12 + i * 11);
+      });
+      ctx.restore();
+    });
+  }
+};
+// End-point label plugin
+const endLabelPlugin = {
+  id: 'endLabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((ds, i) => {
+      const meta = chart.getDatasetMeta(i);
+      if (meta.hidden) return;
+      // find last non-null point
+      let lastIdx = -1;
+      for (let j = ds.data.length - 1; j >= 0; j--) {
+        if (ds.data[j] !== null && ds.data[j] !== undefined) { lastIdx = j; break; }
+      }
+      if (lastIdx < 0) return;
+      const pt = meta.data[lastIdx];
+      if (!pt) return;
+      const x = pt.x + 8;
+      const y = pt.y;
+      const val = ds.data[lastIdx];
+      ctx.save();
+      ctx.font = "bold 10px 'IBM Plex Mono', monospace";
+      ctx.fillStyle = ds.borderColor;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(ds.label + ' ' + val.toLocaleString(), x, y);
+      ctx.restore();
+    });
+  }
+};
+
+function updateRankPanel() {
+  const lastIdx = PERIODS.length - 1;
+  const rows = brokerList
+    .filter(b => activeSet.has(b))
+    .map(b => {
+      const curr = RAW[b][lastIdx];
+      const prev = RAW[b][lastIdx - 1];
+      return { b, curr: curr ?? 0, prev: prev ?? 0 };
+    })
+    .filter(r => r.curr > 0)
+    .sort((a, b) => b.curr - a.curr);
+
+  const list = document.getElementById('rank-list');
+  if (!list) return;
+  list.innerHTML = rows.map((r, i) => {
+    const pct = r.prev > 0 ? ((r.curr - r.prev) / r.prev * 100).toFixed(1) : null;
+    const chgHTML = pct !== null
+      ? `<span style="font-size:10px;color:${pct >= 0 ? '#34d399' : '#f87171'}">${pct >= 0 ? '+' : ''}${pct}%</span>`
+      : '';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1f2e;">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:9px;font-family:IBM Plex Mono,monospace;color:#4a5568;width:14px">${i+1}</span>
+        <span style="width:8px;height:8px;border-radius:50%;background:${colorMap[r.b]};flex-shrink:0;display:inline-block"></span>
+        <span style="font-size:11px;color:#e2e8f0">${r.b}</span>
+      </div>
+      <div style="text-align:right">
+        <span style="font-family:IBM Plex Mono,monospace;font-size:11px;font-weight:600;color:${colorMap[r.b]}">${r.curr.toLocaleString()}</span>
+        <br>${chgHTML}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function buildChart() {
   const ctx = document.getElementById('traffic-chart').getContext('2d');
+
+  // default: show 25.07 (index 4) on load
+  setTimeout(() => { showDetailForDi(4); }, 100);
+
   chart = new Chart(ctx, {
     type: 'line',
     data: { labels: PERIODS, datasets: makeDatasets() },
+    plugins: [verticalLinePlugin, endLabelPlugin, blinkPlugin],
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { right: 160 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false, external: externalTooltip },
       },
+      animation: {
+        onComplete: () => renderPulse()
+      },
       scales: {
         x: {
           grid: { color: '#1a1f2e' },
-          ticks: { color: '#4a5568', font: { family:"'IBM Plex Mono', monospace", size:10 } }
+          ticks: {
+            font: { family:"'IBM Plex Mono', monospace", size:11, weight:'600' },
+            color: function(ctx) {
+              const label = PERIODS[ctx.index] || '';
+              return label.startsWith('26') ? '#e2e8f0' : '#6b7280';
+            },
+            maxRotation: 0,
+          }
         },
         y: {
           grid: { color: '#1a1f2e' },
@@ -521,12 +667,85 @@ function buildChart() {
       }
     }
   });
+  updateRankPanel();
+  setTimeout(renderPulse, 300);
 }
 
 function updateChart() {
   chart.data.datasets = makeDatasets();
   chart.update();
+  updateRankPanel();
+  setTimeout(renderPulse, 100);
 }
+
+// Blinking top-3 end points
+let blinkFrame = 0;
+let blinkRaf = null;
+
+function startBlink() {
+  if (blinkRaf) cancelAnimationFrame(blinkRaf);
+  function loop() {
+    blinkFrame = (blinkFrame + 1) % 80;
+    if (chart) chart.draw();
+    blinkRaf = requestAnimationFrame(loop);
+  }
+  blinkRaf = requestAnimationFrame(loop);
+}
+
+function renderPulse() {
+  // just ensures blink loop is running after chart builds
+  startBlink();
+}
+
+// Plugin: draw pulsing glow on top-3 last points
+const blinkPlugin = {
+  id: 'blinkTop3',
+  afterDatasetsDraw(chartInst) {
+    const ctx = chartInst.ctx;
+    const lastIdx = PERIODS.length - 1;
+    const ranked = brokerList
+      .filter(b => activeSet.has(b))
+      .map(b => ({ b, val: RAW[b][lastIdx] ?? 0 }))
+      .filter(r => r.val > 0)
+      .sort((a, b) => b.val - a.val)
+      .slice(0, 3);
+
+    // sine wave: 0→1→0 over 80 frames
+    const pulse = (Math.sin(blinkFrame / 80 * Math.PI * 2) + 1) / 2;
+
+    ranked.forEach(r => {
+      const dsIdx = chartInst.data.datasets.findIndex(d => d.label === r.b);
+      if (dsIdx < 0) return;
+      const meta = chartInst.getDatasetMeta(dsIdx);
+      if (!meta || !meta.data) return;
+      let ptIdx = -1;
+      for (let j = meta.data.length - 1; j >= 0; j--) {
+        if (RAW[r.b][j] !== null && RAW[r.b][j] !== undefined) { ptIdx = j; break; }
+      }
+      if (ptIdx < 0) return;
+      const pt = meta.data[ptIdx];
+      if (!pt) return;
+      const color = colorMap[r.b];
+
+      // outer glow ring
+      const glowR = 8 + pulse * 10;
+      const alpha = 0.15 + pulse * 0.35;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = color + Math.round(alpha * 255).toString(16).padStart(2,'0');
+      ctx.fill();
+
+      // bright core dot
+      const coreR = 4 + pulse * 2;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, coreR, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+};
 
 // TOOLTIP — hover shows, persists when mouse enters tooltip
 let pinnedIndex = null;
@@ -544,6 +763,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 120);
   });
 });
+
+function buildSideHTML(di, dataPoints) {
+  const period = PERIODS[di];
+  const ev = EVENTS[di] || { issues:[], brokerNews:[], industry:[] };
+
+  const activeData = dataPoints
+    .filter(dp => dp.raw !== null && dp.raw !== undefined)
+    .sort((a,b) => (b.raw||0) - (a.raw||0));
+
+  const valRows = activeData.map(dp => {
+    const prev = RAW[dp.dataset.label][di-1];
+    let chg = '';
+    if (prev !== null && prev !== undefined && prev > 0 && dp.raw !== null) {
+      const pct = ((dp.raw - prev)/prev*100).toFixed(1);
+      const sign = pct > 0 ? '+' : '';
+      const col = pct > 0 ? '#34d399' : '#f87171';
+      chg = `<span style="font-size:10px;color:${col}">${sign}${pct}%</span>`;
+    }
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #1a1f2e;">
+      <span style="font-size:11px;color:${dp.dataset.borderColor}">${dp.dataset.label}</span>
+      <div style="text-align:right">
+        <span style="font-family:IBM Plex Mono,monospace;font-size:11px;font-weight:600;color:${dp.dataset.borderColor}">${(dp.raw||0).toLocaleString()}</span>
+        ${chg ? '<br>' + chg : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  let issueHTML = '';
+  if (ev.issues && ev.issues.length) {
+    const rows = ev.issues.map(e => {
+      const link = e.url ? `<a href="${e.url}" target="_blank" style="font-size:9px;color:#4a6fa5;font-family:IBM Plex Mono,monospace;display:block;margin-top:2px;word-break:break-all">${e.url}</a>` : '';
+      const dot = e.type === 'issue' ? '#f87171' : e.type === 'promo' ? '#34d399' : '#fbbf24';
+      return `<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-start">
+        <div style="width:5px;height:5px;border-radius:50%;background:${dot};flex-shrink:0;margin-top:4px"></div>
+        <div><span style="font-size:11px;color:#cbd5e1">${e.text}</span>${link}</div>
+      </div>`;
+    }).join('');
+    issueHTML = `<div style="border-top:1px solid #1e2330;padding:10px 14px 6px">
+      <div style="font-size:9px;font-family:IBM Plex Mono,monospace;color:var(--muted);letter-spacing:0.1em;margin-bottom:6px">📌 트래픽 이슈</div>${rows}</div>`;
+  }
+
+  let brokerHTML = '';
+  if (ev.brokerNews && ev.brokerNews.length) {
+    const rows = ev.brokerNews.map(e => {
+      const link = e.url ? `<a href="${e.url}" target="_blank" style="font-size:9px;color:#4a6fa5;font-family:IBM Plex Mono,monospace;display:block;margin-top:2px;word-break:break-all">${e.url}</a>` : '';
+      return `<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-start">
+        <div style="width:5px;height:5px;border-radius:50%;background:#34d399;flex-shrink:0;margin-top:4px"></div>
+        <div><span style="font-size:11px;color:#cbd5e1"><strong style="color:#e2e8f0">${e.broker}</strong> — ${e.text}</span>${link}</div>
+      </div>`;
+    }).join('');
+    brokerHTML = `<div style="border-top:1px solid #1e2330;padding:10px 14px 6px">
+      <div style="font-size:9px;font-family:IBM Plex Mono,monospace;color:var(--muted);letter-spacing:0.1em;margin-bottom:6px">🏢 브로커 소식</div>${rows}</div>`;
+  }
+
+  let industryHTML = '';
+  if (ev.industry && ev.industry.length) {
+    const rows = ev.industry.map(e =>
+      `<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-start">
+        <div style="width:5px;height:5px;border-radius:50%;background:#fbbf24;flex-shrink:0;margin-top:4px"></div>
+        <div><span style="font-size:11px;color:#cbd5e1">${e.text}</span>
+        <a href="${e.url}" target="_blank" style="font-size:9px;color:#4a6fa5;font-family:IBM Plex Mono,monospace;display:block;margin-top:2px;word-break:break-all">${e.url}</a></div>
+      </div>`
+    ).join('');
+    industryHTML = `<div style="border-top:1px solid #1e2330;padding:10px 14px 6px">
+      <div style="font-size:9px;font-family:IBM Plex Mono,monospace;color:var(--muted);letter-spacing:0.1em;margin-bottom:6px">📰 업계 동향</div>${rows}</div>`;
+  }
+
+  return `
+    <div style="padding:10px 14px 6px;border-bottom:1px solid #1e2330;background:#0a0c10">
+      <div style="font-family:IBM Plex Mono,monospace;font-size:10px;color:var(--accent);font-weight:600;letter-spacing:0.12em">${period}</div>
+    </div>
+    <div style="padding:6px 14px">${valRows}</div>
+    ${issueHTML}${brokerHTML}${industryHTML}
+  `;
+}
 
 function buildTooltipHTML(di, dataPoints) {
   const period = PERIODS[di];
@@ -657,22 +951,67 @@ function positionTooltip(tt, caretX, caretY, canvas) {
   tt.style.visibility = 'visible';
 }
 
-function externalTooltip(context) {
-  const tt = document.getElementById('tooltip');
-  if (pinnedIndex !== null) return;
-  if (tooltipHovered) return; // mouse is on tooltip, don't update/hide
+function showRank() {
+  const rank = document.getElementById('side-rank');
+  const detail = document.getElementById('side-detail');
+  if (!rank || !detail) return;
+  detail.style.display = 'none';
+  rank.style.display = 'block';
+}
 
-  if (context.tooltip.opacity === 0) {
-    // only hide if mouse not on tooltip
-    if (!tooltipHovered) tt.style.display = 'none';
+let currentDi = null;
+
+function getDataPointsForDi(di) {
+  return brokerList
+    .filter(b => activeSet.has(b))
+    .map(b => ({ raw: RAW[b][di], dataset: { label: b, borderColor: colorMap[b] } }))
+    .filter(dp => dp.raw !== null && dp.raw !== undefined);
+}
+
+function showDetailForDi(di) {
+  currentDi = di;
+  const detail = document.getElementById('side-detail');
+  const rank = document.getElementById('side-rank');
+  const navPeriod = document.getElementById('side-nav-period');
+  if (!detail || !rank) return;
+  const html = buildSideHTML(di, getDataPointsForDi(di));
+  const body = detail.querySelector('#side-detail-body');
+  if (body) body.innerHTML = html;
+  if (navPeriod) navPeriod.textContent = PERIODS[di];
+  rank.style.display = 'none';
+  detail.style.display = 'block';
+}
+
+function showDetail(html) {
+  // legacy call from default load — parse di from html or use currentDi
+  showDetailForDi(currentDi !== null ? currentDi : 4);
+}
+
+function navMonth(dir) {
+  if (currentDi === null) return;
+  const next = currentDi + dir;
+  if (next < 0 || next >= PERIODS.length) return;
+  showDetailForDi(next);
+}
+
+// click on chart → show that month's detail; click elsewhere → show rank
+document.addEventListener('click', function(e) {
+  if (!chart) return;
+  if (e.target === chart.canvas) {
+    const pts = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
+    if (pts.length) {
+      showDetailForDi(pts[0].index);
+    }
     return;
   }
-  const di = context.tooltip.dataPoints?.[0]?.dataIndex;
-  if (di === undefined) { tt.style.display = 'none'; return; }
+  // clicked outside chart and outside panel → back to rank
+  const panel = document.getElementById('side-panel');
+  if (panel && panel.contains(e.target)) return;
+  showRank();
+});
 
-  tt.innerHTML = buildTooltipHTML(di, context.tooltip.dataPoints);
-  positionTooltip(tt, context.tooltip.caretX, context.tooltip.caretY, context.chart.canvas);
-  tt.style.display = 'block';
+function externalTooltip(context) {
+  // hover tooltip disabled — using click-based side panel only
 }
 
 // Click on chart → pin tooltip
@@ -682,32 +1021,12 @@ document.addEventListener('click', function(e) {
 
   // clicking the ✕ button or outside tooltip → close
   if (closeBtn && e.target === closeBtn) {
-    pinnedIndex = null;
     tt.style.display = 'none';
     return;
   }
   if (tt.contains(e.target)) return; // click inside tooltip → do nothing (let links work)
 
-  // clicking on chart canvas → pin
-  if (chart && e.target === chart.canvas) {
-    const points = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, true);
-    if (points.length) {
-      const di = points[0].index;
-      const dataPoints = chart.data.datasets
-        .filter(ds => activeSet.has(ds.label))
-        .map(ds => ({ raw: ds.data[di], dataset: ds }))
-        .filter(dp => dp.raw !== null);
-      pinnedIndex = di;
-      tt.innerHTML = buildTooltipHTML(di, dataPoints);
-      const rect = chart.canvas.getBoundingClientRect();
-      positionTooltip(tt, e.clientX - rect.left, e.clientY - rect.top, chart.canvas);
-      tt.style.display = 'block';
-    }
-    return;
-  }
-
   // click elsewhere → close
-  pinnedIndex = null;
   tt.style.display = 'none';
 });
 
