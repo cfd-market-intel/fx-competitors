@@ -59,6 +59,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
 <div class="tabs">
   <div class="tab active" onclick="switchTab('data')">트래픽 데이터</div>
   <div class="tab" onclick="switchTab('chart')">변동 그래프</div>
+  <div class="tab" onclick="switchTab('total')">업계 합산 추이</div>
 </div>
 
 <div class="content active" id="tab-data">
@@ -104,6 +105,22 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
         </div>
         <div id="side-detail-body"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="tab-total">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:16px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">경쟁사 전체 신규 트래픽 합산 추이</div>
+    <div style="font-size:12px;color:#64748b">전체 모니터링 브로커 트래픽 합계 — null 제외 합산</div>
+  </div>
+  <div style="display:flex;gap:16px;align-items:flex-start">
+    <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;height:420px;position:relative">
+      <canvas id="total-chart"></canvas>
+    </div>
+    <div id="total-stats" style="width:200px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px">
+      <div style="font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px">기간별 합계</div>
+      <div id="total-stats-body"></div>
     </div>
   </div>
 </div>
@@ -363,7 +380,7 @@ function filterTable(tier) {
 }
 
 // ── CHART ──
-const activeSet = new Set(["인피녹스","컬쳐캐피탈","제로마켓","한텍마켓","이지스퀘어","XM거래소","DPrime"]);
+const activeSet = new Set(["인피녹스","컬쳐캐피탈","제로마켓","한텍마켓","이지스퀘어","XM거래소"]);
 let chart = null;
 let currentDi = null;
 
@@ -698,13 +715,109 @@ document.addEventListener('click', function(e) {
   });
 })();
 
+let totalChart = null;
+
+function buildTotalChart() {
+  // Calculate sum per period (exclude null)
+  const totals = PERIODS.map(function(p, i) {
+    return brokerList.reduce(function(sum, b) {
+      const v = RAW[b][i];
+      return sum + (v !== null && v !== undefined ? v : 0);
+    }, 0);
+  });
+
+  // Previous period change
+  const changes = totals.map(function(v, i) {
+    if (i === 0) return null;
+    const prev = totals[i-1];
+    return prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : null;
+  });
+
+  const ctx = document.getElementById('total-chart').getContext('2d');
+  totalChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: PERIODS,
+      datasets: [{
+        label: '전체 합산 트래픽',
+        data: totals,
+        borderColor: '#38bdf8',
+        backgroundColor: 'rgba(56,189,248,0.08)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBackgroundColor: '#38bdf8',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const i = ctx.dataIndex;
+              const chg = changes[i];
+              const chgStr = chg !== null ? (chg >= 0 ? ' ▲+' : ' ▼') + chg + '%' : '';
+              return '합계: ' + ctx.raw.toLocaleString() + chgStr;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#1a1f2e' },
+          ticks: {
+            font: { family:"'IBM Plex Mono',monospace", size:11, weight:'600' },
+            color: function(ctx) {
+              const label = PERIODS[ctx.index] || '';
+              return label.startsWith('26') ? '#e2e8f0' : '#6b7280';
+            },
+            maxRotation: 0
+          }
+        },
+        y: {
+          grid: { color: '#1a1f2e' },
+          ticks: {
+            color: '#4a5568',
+            font: { family:"'IBM Plex Mono',monospace", size:10 },
+            callback: function(v) { return v.toLocaleString(); }
+          }
+        }
+      }
+    }
+  });
+
+  // Build stats panel
+  const statsBody = document.getElementById('total-stats-body');
+  const maxVal = Math.max.apply(null, totals);
+  statsBody.innerHTML = totals.map(function(v, i) {
+    const chg = changes[i];
+    const chgHTML = chg !== null
+      ? '<span style="font-size:10px;color:' + (chg >= 0 ? '#34d399' : '#f87171') + '">' + (chg >= 0 ? '+' : '') + chg + '%</span>'
+      : '';
+    const isMax = v === maxVal;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #1a1f2e">'
+      + '<span style="font-size:10px;font-family:\"IBM Plex Mono\",monospace;color:' + (PERIODS[i].startsWith('26') ? '#e2e8f0' : '#6b7280') + '">'  + PERIODS[i] + '</span>'
+      + '<div style="text-align:right">'
+      + '<span style="font-family:\"IBM Plex Mono\",monospace;font-size:10px;font-weight:600;color:' + (isMax ? '#fbbf24' : '#38bdf8') + '">'  + v.toLocaleString() + '</span>'
+      + (chgHTML ? '<br>' + chgHTML : '')
+      + '</div></div>';
+  }).join('');
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(function(t, i) {
-    t.classList.toggle('active', (i===0&&tab==='data')||(i===1&&tab==='chart'));
+    t.classList.toggle('active', (i===0&&tab==='data')||(i===1&&tab==='chart')||(i===2&&tab==='total'));
   });
   document.getElementById('tab-data').classList.toggle('active', tab==='data');
   document.getElementById('tab-chart').classList.toggle('active', tab==='chart');
+  document.getElementById('tab-total').classList.toggle('active', tab==='total');
   if (tab === 'chart' && !chart) { buildToggles(); buildChart(); }
+  if (tab === 'total' && !totalChart) { buildTotalChart(); }
 }
 
 // Init
