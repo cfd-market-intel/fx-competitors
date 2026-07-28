@@ -718,7 +718,6 @@ document.addEventListener('click', function(e) {
 let totalChart = null;
 
 function buildTotalChart() {
-  // Calculate sum per period (exclude null)
   const totals = PERIODS.map(function(p, i) {
     return brokerList.reduce(function(sum, b) {
       const v = RAW[b][i];
@@ -726,42 +725,127 @@ function buildTotalChart() {
     }, 0);
   });
 
-  // Previous period change
   const changes = totals.map(function(v, i) {
     if (i === 0) return null;
     const prev = totals[i-1];
     return prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : null;
   });
 
+  const avg = Math.round(totals.reduce(function(a,b){return a+b;},0) / totals.length);
+  const totalMax = Math.max.apply(null, totals);
+  const totalMin = Math.min.apply(null, totals);
+
   const ctx = document.getElementById('total-chart').getContext('2d');
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, 380);
+  grad.addColorStop(0, 'rgba(56,189,248,0.35)');
+  grad.addColorStop(0.6, 'rgba(56,189,248,0.08)');
+  grad.addColorStop(1, 'rgba(56,189,248,0)');
+
+  // Point colors: gold=max, red=min, else based on change
+  const pointColors = totals.map(function(v, i) {
+    if (v === totalMax) return '#fbbf24';
+    if (v === totalMin) return '#f87171';
+    if (i === 0) return '#38bdf8';
+    return parseFloat(changes[i]) >= 0 ? '#34d399' : '#f87171';
+  });
+
+  const pointSizes = totals.map(function(v) {
+    return (v === totalMax || v === totalMin) ? 8 : 5;
+  });
+
+  // Value label plugin
+  const valueLabelPlugin = {
+    id: 'valueLabels',
+    afterDatasetsDraw: function(chart) {
+      const ctx2 = chart.ctx;
+      const meta = chart.getDatasetMeta(0);
+      meta.data.forEach(function(pt, i) {
+        const v = totals[i];
+        const chg = changes[i];
+        const isMax = v === totalMax;
+        const isMin = v === totalMin;
+        const showLabel = isMax || isMin || i === totals.length - 1 || i === 0;
+
+        // Always show change % on every point
+        if (chg !== null) {
+          const pct = parseFloat(chg);
+          ctx2.save();
+          ctx2.font = "bold 9px 'IBM Plex Mono', monospace";
+          ctx2.fillStyle = pct >= 0 ? '#34d399' : '#f87171';
+          ctx2.textAlign = 'center';
+          ctx2.fillText((pct >= 0 ? '+' : '') + chg + '%', pt.x, pt.y - 18);
+          ctx2.restore();
+        }
+
+        // Show value on max, min, first, last
+        if (showLabel) {
+          ctx2.save();
+          ctx2.font = "bold 10px 'IBM Plex Mono', monospace";
+          ctx2.fillStyle = isMax ? '#fbbf24' : isMin ? '#f87171' : '#e2e8f0';
+          ctx2.textAlign = 'center';
+          ctx2.fillText(v.toLocaleString(), pt.x, pt.y - 30);
+          ctx2.restore();
+        }
+      });
+    }
+  };
+
   totalChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: PERIODS,
-      datasets: [{
-        label: '전체 합산 트래픽',
-        data: totals,
-        borderColor: '#38bdf8',
-        backgroundColor: 'rgba(56,189,248,0.08)',
-        borderWidth: 2.5,
-        pointRadius: 5,
-        pointHoverRadius: 8,
-        pointBackgroundColor: '#38bdf8',
-        tension: 0.3,
-        fill: true
-      }]
+      datasets: [
+        {
+          label: '전체 합산 트래픽',
+          data: totals,
+          borderColor: '#38bdf8',
+          backgroundColor: grad,
+          borderWidth: 2.5,
+          pointRadius: pointSizes,
+          pointHoverRadius: 9,
+          pointBackgroundColor: pointColors,
+          pointBorderColor: pointColors,
+          tension: 0.35,
+          fill: true,
+          order: 1
+        },
+        {
+          label: '평균 (' + avg.toLocaleString() + ')',
+          data: totals.map(function(){ return avg; }),
+          borderColor: 'rgba(251,191,36,0.5)',
+          borderWidth: 1.5,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          fill: false,
+          order: 2
+        }
+      ]
     },
+    plugins: [valueLabelPlugin],
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { top: 40 } },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: '#94a3b8',
+            font: { family:"'IBM Plex Mono',monospace", size:10 },
+            boxWidth: 20,
+            padding: 16
+          }
+        },
         tooltip: {
           callbacks: {
             label: function(ctx) {
+              if (ctx.datasetIndex === 1) return '평균: ' + avg.toLocaleString();
               const i = ctx.dataIndex;
               const chg = changes[i];
-              const chgStr = chg !== null ? (chg >= 0 ? ' ▲+' : ' ▼') + chg + '%' : '';
+              const chgStr = chg !== null ? ' (' + (chg >= 0 ? '▲+' : '▼') + chg + '%)' : '';
               return '합계: ' + ctx.raw.toLocaleString() + chgStr;
             }
           }
