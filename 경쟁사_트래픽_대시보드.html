@@ -54,14 +54,13 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     <div class="header-label">IX Internal · CFD/FX Competitive Intelligence</div>
     <h1>경쟁사 트래픽 분석</h1>
   </div>
-  <div class="header-meta">2025.03 — 2026.07<br>Itemscout 기준 · 격주 수집<br>26개사 모니터링</div>
+  <div class="header-meta">2025.03 — 2026.08<br>Itemscout 기준 · 격주 수집<br>26개사 모니터링</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('data')">트래픽 데이터</div>
   <div class="tab" onclick="switchTab('chart')">변동 그래프</div>
   <div class="tab" onclick="switchTab('total')">업계 합산 추이</div>
 </div>
-
 <div class="content active" id="tab-data">
   <div class="table-controls">
     <span class="section-label">Tier 필터</span>
@@ -78,13 +77,12 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
       <thead><tr>
         <th class="left" style="width:36px">Tier</th>
         <th class="left" style="width:130px">경쟁사</th>
-        <th>25.03</th><th>25.04</th><th>25.05</th><th>25.06</th><th>25.07</th><th>25.08</th><th>25.09</th><th>25.10</th><th>25.11</th><th>25.12</th><th>26.01</th><th>26.02</th><th>26.03</th><th>26.04</th><th>26.05</th><th>26.06</th><th>26.07</th>
+        <th>25.03</th><th>25.04</th><th>25.05</th><th>25.06</th><th>25.07</th><th>25.08</th><th>25.09</th><th>25.10</th><th>25.11</th><th>25.12</th><th>26.01</th><th>26.02</th><th>26.03</th><th>26.04</th><th>26.05</th><th>26.06</th><th>26.07</th><th>26.08</th>
       </tr></thead>
       <tbody id="data-tbody"></tbody>
     </table>
   </div>
 </div>
-
 <div class="content" id="tab-chart">
   <div class="chart-controls" id="broker-toggles"></div>
   <div style="display:flex;gap:16px;align-items:flex-start">
@@ -94,7 +92,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     </div>
     <div id="side-panel" style="width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow-y:auto;min-height:300px;max-height:480px">
       <div id="side-rank">
-        <div style="padding:12px 14px 6px;font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.12em;text-transform:uppercase">최신 순위 (26.06)</div>
+        <div style="padding:12px 14px 6px;font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.12em;text-transform:uppercase">최신 순위 (26.08)</div>
         <div id="rank-list" style="padding:0 14px 12px"></div>
       </div>
       <div id="side-detail" style="display:none">
@@ -108,7 +106,6 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     </div>
   </div>
 </div>
-
 <div class="content" id="tab-total">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:16px">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">경쟁사 전체 신규 트래픽 합산 추이</div>
@@ -124,45 +121,41 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     </div>
   </div>
 </div>
-
 <script>
-const PERIODS = ["25.03","25.04","25.05","25.06","25.07","25.08","25.09","25.10","25.11","25.12","26.01","26.02","26.03","26.04","26.05","26.06","26.07"];
-
+const PERIODS = ["25.03","25.04","25.05","25.06","25.07","25.08","25.09","25.10","25.11","25.12","26.01","26.02","26.03","26.04","26.05","26.06","26.07","26.08"];
 const RAW = {
-  "인피녹스":      [3120,2750,2760,2550,2250,2470,1780,2250,1850,1390,1470,2410,1930,1540,1690,2130,1550],
-  "컬쳐캐피탈":    [1410,1530,1790,1550,1940,1520,2010,3000,2820,2910,2670,3050,2400,2690,2270,2190,1890],
-  "제로마켓":      [1080,1370,850,880,750,740,1040,940,740,640,520,690,640,700,520,600,520],
-  "한텍마켓":      [0,0,90,360,340,570,350,560,610,490,520,990,510,690,570,720,370],
-  "이지스퀘어":    [580,1170,1040,460,390,490,410,670,496,601,581,2700,610,370,720,250,350],
-  "XM거래소":      [null,107,73,39,83,179,195,418,820,630,540,810,470,330,290,230,220],
-  "DPrime":        [null,null,null,null,null,0,20,140,380,370,410,260,290,230,170,170,210],
-  "아바트레이드":  [null,280,112,100,165,173,141,313,278,180,120,100,250,193,120,60,40],
-  "RS파이낸스":    [null,null,null,null,102,102,20,144,288,405,273,440,100,100,260,170,150],
-  "라이트파이낸스":[99,152,141,30,141,72,70,40,161,84,68,145,84,70,146,68,19],
-  "고마켓":        [156,195,223,58,38,71,96,84,160,116,37,80,70,10,60,10,30],
-  "GFS마켓":       [270,142,93,49,0,60,78,240,10,70,400,140,0,0,30,0,0],
-  "TMGM":          [183,50,93,30,20,70,40,120,86,68,80,80,41,74,50,17,31],
-  "모네타마켓":    [88,29,0,79,150,81,43,51,39,52,71,111,77,90,87,70,53],
-  "랜드프라임":    [88,84,55,86,77,45,98,145,104,75,64,75,47,50,67,93,100],
-  "ATFX":          [150,130,100,110,10,20,70,100,170,86,37,81,410,54,20,46,60],
-  "PUPrime":       [30,40,35,34,31,91,69,59,25,79,132,80,124,85,88,27,51],
-  "엑스네스":      [105,70,68,10,0,0,0,30,20,0,60,80,22,50,19,40,21],
-  "M4Markets":     [null,null,null,null,112,270,23,41,41,18,0,20,60,12,23,20,0],
-  "트로이마켓":    [null,null,null,null,7,20,90,40,30,70,25,92,16,49,25,128,43],
-  "AP마켓":        [73,99,55,52,50,31,74,17,0,68,66,187,30,44,30,10,0],
-  "VTMarkets":     [null,null,null,null,null,null,null,null,null,null,null,null,null,40,20,0,0],
-  "에임스캡":      [null,null,null,null,10,0,16,0,0,0,20,0,0,0,0,0,0],
-  "덱시아마켓":   [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,45],
-  "xlence":       [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,4],
-  "오르비스 시큐리티즈": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,26],
+  "인피녹스": [3120,2750,2760,2550,2250,2470,1780,2250,1850,1390,1470,2410,1930,1540,1690,2130,1550,2120],
+  "컬쳐캐피탈": [1410,1530,1790,1550,1940,1520,2010,3000,2820,2910,2670,3050,2400,2690,2270,2190,1890,2330],
+  "제로마켓": [1080,1370,850,880,750,740,1040,940,740,640,520,690,640,700,520,600,520,760],
+  "한텍마켓": [0,0,90,360,340,570,350,560,610,490,520,990,510,690,570,720,370,570],
+  "이지스퀘어": [580,1170,1040,460,390,490,410,670,496,601,581,2700,610,370,720,250,350,420],
+  "XM거래소": [null,107,73,39,83,179,195,418,820,630,540,810,470,330,290,230,220,310],
+  "DPrime": [null,null,null,null,null,0,20,140,380,370,410,260,290,230,170,170,210,220],
+  "아바트레이드": [null,280,112,100,165,173,141,313,278,180,120,100,250,193,120,60,40,null],
+  "RS파이낸스": [null,null,null,null,102,102,20,144,288,405,273,440,100,100,260,170,150,0],
+  "라이트파이낸스":[99,152,141,30,141,72,70,40,161,84,68,145,84,70,146,68,19,64],
+  "고마켓": [156,195,223,58,38,71,96,84,160,116,37,80,70,10,60,10,30,50],
+  "GFS마켓": [270,142,93,49,0,60,78,240,10,70,400,140,0,0,30,0,0,0],
+  "TMGM": [183,50,93,30,20,70,40,120,86,68,80,80,41,74,50,17,31,72],
+  "모네타마켓": [88,29,0,79,150,81,43,51,39,52,71,111,77,90,87,70,53,62],
+  "랜드프라임": [88,84,55,86,77,45,98,145,104,75,64,75,47,50,67,93,100,129],
+  "ATFX": [150,130,100,110,10,20,70,100,170,86,37,81,410,54,20,46,60,90],
+  "PUPrime": [30,40,35,34,31,91,69,59,25,79,132,80,124,85,88,27,51,69],
+  "엑스네스": [105,70,68,10,0,0,0,30,20,0,60,80,22,50,19,40,21,80],
+  "M4Markets": [null,null,null,null,112,270,23,41,41,18,0,20,60,12,23,20,0,66],
+  "트로이마켓": [null,null,null,null,7,20,90,40,30,70,25,92,16,49,25,128,43,20],
+  "AP마켓": [73,99,55,52,50,31,74,17,0,68,66,187,30,44,30,10,0,0],
+  "VTMarkets": [null,null,null,null,null,null,null,null,null,null,null,null,null,40,20,0,0,null],
+  "에임스캡": [null,null,null,null,10,0,16,0,0,0,20,0,0,0,0,0,0,0],
+  "덱시아마켓": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,45,258],
+  "xlence": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,4,4],
+  "오르비스 시큐리티즈": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,26,40],
 };
-
 const TIERS = {
   "인피녹스":"T1","컬쳐캐피탈":"T1","제로마켓":"T1","한텍마켓":"T1","이지스퀘어":"T1",
   "XM거래소":"T2","DPrime":"T2","아바트레이드":"T2","RS파이낸스":"T2","라이트파이낸스":"T2","고마켓":"T2"
 };
 const getTier = b => TIERS[b] || "T3";
-
 const EVENTS = {
   4: { issues:[], brokerNews:[], industry:[
     {text:"영국 상장을 위한 기회, 장애물 및 PISCES의 역할",url:"https://financeday.co.uk/opportunities-obstacles-and-the-role-of-pisces-in-shaping-the-path-for-uk-listings/"},
@@ -307,30 +300,53 @@ const EVENTS = {
       {text:"플랫폼 전쟁: 주요 외환 브로커들이 기존 기술을 버리고 자체 생태계로 전환하는 이유",url:"https://fxnewsgroup.com/forex-news/platforms/the-platform-wars-why-leading-forex-brokers-are-abandoning-legacy-tech-for-proprietary-ecosystems/"}
     ]
   },
+  17: {
+    issues:[
+      {type:"news",text:"제로마켓 — USDT 출금 시 안면인식 인증 도입 (26.07.27부터 적용, 신규 지갑 주소만 해당·기존 주소는 인증 없이 출금 가능)",url:""},
+      {type:"issue",text:"DPrime — 신규 출금 불만 확산, 여러 국가 트레이더 자금 차단 보고",url:"https://www.fastbull.com/ko/brokersview/news/d-prime-%EC%83%88%EB%A1%9C%EC%9A%B4-%EC%B6%9C%EA%B8%88-%EB%B6%88%EB%A7%8C%EC%97%90-%EC%A7%81%EB%A9%B4-%EC%97%AC%EB%9F%AC-%EA%B5%AD%EA%B0%80%EC%9D%98-%ED%8A%B8%EB%A0%88%EC%9D%B4%EB%8D%94%EB%93%A4%EC%9D%B4-%EC%9E%90%EA%B8%88-%EC%B0%A8%EB%8B%A8%EC%9D%84-%EB%B3%B4%EA%B3%A0-325413"},
+      {type:"news",text:"덱시아마켓 — 신규 원화 입출금 서비스 'Trona' 오픈 (앱 결제 방식, 1회 최소 40 USD)",url:""},
+      {type:"promo",text:"덱시아마켓 — 45 → 258 (+473.3%)",url:""},
+      {type:"promo",text:"엑스네스 — 21 → 80 (+281.0%)",url:""},
+      {type:"promo",text:"라이트파이낸스 — 19 → 64 (+236.8%)",url:""},
+      {type:"issue",text:"RS파이낸스 — 150 → 0 (-100.0%)",url:""},
+      {type:"issue",text:"트로이마켓 — 43 → 20 (-53.5%)",url:""}
+    ],
+    brokerNews:[
+      {broker:"모네타마켓",text:"UAE CMA 카테고리 5 라이선스 취득으로 중동 지역 사업 확장",url:"https://www.financemagnates.com/forex/moneta-markets-expands-middle-east-presence-with-uae-cma-category-5-licence/"},
+      {broker:"VTMarkets",text:"전용 ClubÉlite 프로그램 출시로 파트너 경험 혁신",url:"https://www.vtmarkets.com/kr-asia/press-release/vt-markets-refreshes-partner-experience-with-launch-of-dedicated-clubelite-programme/"},
+      {broker:"VTMarkets",text:"24시간 금 CFD 거래 시장 진출 경쟁에 합류",url:"https://www.financemagnates.com/forex/brokers/vt-markets-joins-broker-rush-into-247-gold-cfds/"},
+      {broker:"XM",text:"소매 브로커 대열에 합류하여 7일 금 CFD 거래 확대에 동참",url:"https://www.financemagnates.com/forex/xm-joins-retail-brokers-expanding-seven-day-gold-cfd-trading/"}
+    ],
+    industry:[
+      {text:"STARTRADER, SK하이닉스의 미국 시장 데뷔에 맞춰 SKHY 종목 출시",url:"https://financefeeds.com/startrader-launches-skhy-as-sk-hynix-makes-us-market-debut/"},
+      {text:"암호화폐 거래소 비트마트, 9년 만 폐업 수순…2027년 1월 종료",url:"https://www.digitaltoday.co.kr/news/articleView.html?idxno=687209"},
+      {text:"개미FX — 원화 입금(국내 계좌이체) 및 주의사항 안내",url:"https://antfx.kr/%EC%9B%90%ED%99%94-%EC%9E%85%EA%B8%88/"},
+      {text:"CFD 브로커 계좌 장부는 2분기에 유지되었지만 거래량은 그렇지 않았음",url:"https://www.financemagnates.com/forex/analysis/cfd-broker-account-books-held-up-in-q2-trading-did-not/"},
+      {text:"리테일 브로커들, 브랜드명에서 'Markets' 제거 확산…브랜드 단순화·사업 다각화 움직임",url:"https://www.financemagnates.com/forex/how-to-lose-markets-in-ten-months/"},
+      {text:"CME, CFD 계약 규모 또다시 축소 — 개인 투자자 이탈 가능성",url:"https://www.financemagnates.com/forex/analysis/cme-shrinks-its-contracts-again-will-that-pull-retail-away-from-cfds/"}
+    ]
+  },
 };
-
 const EVENT_LINES = {
-  6:  { label: "M4Markets\n카피트레이딩 사고", color: "#f87171" },
+  6: { label: "M4Markets\n카피트레이딩 사고", color: "#f87171" },
   11: { label: "이지스퀘어\n급등", color: "#fbbf24" },
   15: { label: "이지스퀘어\n홈페이지 차단", color: "#f87171" },
-  16: { label: "INFINOX\nAdmirals 협상", color: "#fbbf24" }
+  16: { label: "INFINOX\nAdmirals 협상", color: "#fbbf24" },
+  17: { label: "덱시아마켓\n급등(+473%)", color: "#fbbf24" }
 };
-
 const PALETTE = ["#38bdf8","#34d399","#f59e0b","#a78bfa","#f87171","#22d3ee","#86efac","#fcd34d","#c084fc","#fca5a5","#67e8f9","#6ee7b7","#fde68a","#d8b4fe","#fecaca","#e879f9","#4ade80","#fb923c","#60a5fa","#a3e635","#f472b6","#94a3b8","#2dd4bf","#facc15","#818cf8","#e2e8f0"];
 const brokerList = Object.keys(RAW);
 const colorMap = {};
 brokerList.forEach((b,i) => colorMap[b] = PALETTE[i % PALETTE.length]);
-
 function heatColor(val, mn, mx) {
   if (val === null) return null;
   if (mx === mn) return {bg:"#1a1f2e",fg:"#4a5568"};
   const r = (val - mn) / (mx - mn);
   if (r > 0.75) return {bg:"rgba(56,189,248,.25)",fg:"#93c5fd"};
-  if (r > 0.5)  return {bg:"rgba(56,189,248,.12)",fg:"#7dd3fc"};
+  if (r > 0.5) return {bg:"rgba(56,189,248,.12)",fg:"#7dd3fc"};
   if (r > 0.25) return {bg:"rgba(56,189,248,.06)",fg:"#64748b"};
   return {bg:"#111420",fg:"#374151"};
 }
-
 function buildTable(filterTier, searchQ) {
   filterTier = filterTier || 'ALL';
   searchQ = searchQ || '';
@@ -338,7 +354,6 @@ function buildTable(filterTier, searchQ) {
   if (!tbody) return;
   tbody.innerHTML = '';
   const lastIdx = PERIODS.length - 1;
-  // find latest period with actual data
   let sortIdx = lastIdx;
   while (sortIdx > 0) {
     if (brokerList.some(function(b){ return RAW[b][sortIdx] !== null && RAW[b][sortIdx] !== undefined; })) break;
@@ -373,24 +388,19 @@ function buildTable(filterTier, searchQ) {
     tbody.appendChild(tr);
   });
 }
-
 function filterTable(tier) {
   const q = (document.getElementById('broker-search') || {}).value || '';
   buildTable(tier, q);
 }
-
-// ── CHART ──
 const activeSet = new Set(["인피녹스","컬쳐캐피탈","제로마켓","한텍마켓","이지스퀘어","XM거래소"]);
 let chart = null;
 let currentDi = null;
-
 function getDataPointsForDi(di) {
   return brokerList
     .filter(function(b){ return activeSet.has(b); })
     .map(function(b){ return {raw: RAW[b][di], dataset:{label:b, borderColor:colorMap[b]}}; })
     .filter(function(dp){ return dp.raw !== null && dp.raw !== undefined; });
 }
-
 function showRank() {
   const rank = document.getElementById('side-rank');
   const detail = document.getElementById('side-detail');
@@ -398,7 +408,6 @@ function showRank() {
   detail.style.display = 'none';
   rank.style.display = 'block';
 }
-
 function showDetailForDi(di) {
   currentDi = di;
   const detail = document.getElementById('side-detail');
@@ -411,13 +420,11 @@ function showDetailForDi(di) {
   rank.style.display = 'none';
   detail.style.display = 'block';
 }
-
 function navMonth(dir) {
   if (currentDi === null) return;
   const next = currentDi + dir;
   if (next >= 0 && next < PERIODS.length) showDetailForDi(next);
 }
-
 function buildSideHTML(di, dataPoints) {
   const period = PERIODS[di];
   const ev = EVENTS[di] || {issues:[],brokerNews:[],industry:[]};
@@ -436,14 +443,12 @@ function buildSideHTML(di, dataPoints) {
       + '<div style="text-align:right"><span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:' + dp.dataset.borderColor + '">' + (dp.raw||0).toLocaleString() + '</span>' + (chg ? '<br>' + chg : '') + '</div>'
       + '</div>';
   }).join('');
-
   function makeIssueRow(e, dotColor) {
     const link = e.url ? '<a href="' + e.url + '" target="_blank" style="font-size:9px;color:#4a6fa5;font-family:\'IBM Plex Mono\',monospace;display:block;margin-top:2px;word-break:break-all">' + e.url + '</a>' : '';
     return '<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-start">'
       + '<div style="width:5px;height:5px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;margin-top:4px"></div>'
       + '<div><span style="font-size:11px;color:#cbd5e1">' + e.text + '</span>' + link + '</div></div>';
   }
-
   let issueHTML = '';
   if (ev.issues && ev.issues.length) {
     issueHTML = '<div style="border-top:1px solid #1e2330;padding:10px 14px 6px"><div style="font-size:9px;font-family:\'IBM Plex Mono\',monospace;color:var(--muted);letter-spacing:.1em;margin-bottom:6px">📌 트래픽 이슈</div>'
@@ -474,7 +479,6 @@ function buildSideHTML(di, dataPoints) {
   }
   return '<div style="padding:6px 14px">' + valRows + '</div>' + issueHTML + brokerHTML + industryHTML;
 }
-
 function updateRankPanel() {
   const lastIdx = PERIODS.length - 1;
   const rows = brokerList
@@ -495,8 +499,6 @@ function updateRankPanel() {
       + '<div style="text-align:right"><span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:' + colorMap[r.b] + '">' + r.curr.toLocaleString() + '</span><br>' + chgHTML + '</div></div>';
   }).join('');
 }
-
-// Vertical line plugin
 const verticalLinePlugin = {
   id: 'verticalLines',
   afterDraw: function(chartInst) {
@@ -525,8 +527,6 @@ const verticalLinePlugin = {
     });
   }
 };
-
-// End label plugin
 const endLabelPlugin = {
   id: 'endLabels',
   afterDatasetsDraw: function(chartInst) {
@@ -551,8 +551,6 @@ const endLabelPlugin = {
     });
   }
 };
-
-// Blink plugin
 let blinkFrame = 0;
 let blinkRaf = null;
 function startBlink() {
@@ -564,7 +562,6 @@ function startBlink() {
   }
   blinkRaf = requestAnimationFrame(loop);
 }
-
 const blinkPlugin = {
   id: 'blinkTop3',
   afterDatasetsDraw: function(chartInst) {
@@ -606,7 +603,6 @@ const blinkPlugin = {
     });
   }
 };
-
 function makeDatasets() {
   return brokerList.filter(function(b){ return activeSet.has(b); }).map(function(b) {
     return {
@@ -623,7 +619,6 @@ function makeDatasets() {
     };
   });
 }
-
 function buildToggles() {
   const wrap = document.getElementById('broker-toggles');
   brokerList.forEach(function(b) {
@@ -643,7 +638,6 @@ function buildToggles() {
     wrap.appendChild(btn);
   });
 }
-
 function buildChart() {
   const ctx = document.getElementById('traffic-chart').getContext('2d');
   setTimeout(function(){ showDetailForDi(4); }, 150);
@@ -686,8 +680,6 @@ function buildChart() {
   });
   updateRankPanel();
 }
-
-// Click to show detail
 document.addEventListener('click', function(e) {
   if (!chart) return;
   if (e.target === chart.canvas) {
@@ -699,8 +691,6 @@ document.addEventListener('click', function(e) {
   if (panel && panel.contains(e.target)) return;
   showRank();
 });
-
-// Side panel hover persistence
 (function() {
   document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('side-panel');
@@ -714,9 +704,7 @@ document.addEventListener('click', function(e) {
     });
   });
 })();
-
 let totalChart = null;
-
 function buildTotalChart() {
   const totals = PERIODS.map(function(p, i) {
     return brokerList.reduce(function(sum, b) {
@@ -724,38 +712,28 @@ function buildTotalChart() {
       return sum + (v !== null && v !== undefined ? v : 0);
     }, 0);
   });
-
   const changes = totals.map(function(v, i) {
     if (i === 0) return null;
     const prev = totals[i-1];
     return prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : null;
   });
-
   const avg = Math.round(totals.reduce(function(a,b){return a+b;},0) / totals.length);
   const totalMax = Math.max.apply(null, totals);
   const totalMin = Math.min.apply(null, totals);
-
   const ctx = document.getElementById('total-chart').getContext('2d');
-
-  // Gradient fill
   const grad = ctx.createLinearGradient(0, 0, 0, 380);
   grad.addColorStop(0, 'rgba(56,189,248,0.35)');
   grad.addColorStop(0.6, 'rgba(56,189,248,0.08)');
   grad.addColorStop(1, 'rgba(56,189,248,0)');
-
-  // Point colors: gold=max, red=min, else based on change
   const pointColors = totals.map(function(v, i) {
     if (v === totalMax) return '#fbbf24';
     if (v === totalMin) return '#f87171';
     if (i === 0) return '#38bdf8';
     return parseFloat(changes[i]) >= 0 ? '#34d399' : '#f87171';
   });
-
   const pointSizes = totals.map(function(v) {
     return (v === totalMax || v === totalMin) ? 8 : 5;
   });
-
-  // Value label plugin
   const valueLabelPlugin = {
     id: 'valueLabels',
     afterDatasetsDraw: function(chart) {
@@ -767,8 +745,6 @@ function buildTotalChart() {
         const isMax = v === totalMax;
         const isMin = v === totalMin;
         const showLabel = isMax || isMin || i === totals.length - 1 || i === 0;
-
-        // Always show change % on every point
         if (chg !== null) {
           const pct = parseFloat(chg);
           ctx2.save();
@@ -778,8 +754,6 @@ function buildTotalChart() {
           ctx2.fillText((pct >= 0 ? '+' : '') + chg + '%', pt.x, pt.y - 18);
           ctx2.restore();
         }
-
-        // Show value on max, min, first, last
         if (showLabel) {
           ctx2.save();
           ctx2.font = "bold 10px 'IBM Plex Mono', monospace";
@@ -791,7 +765,6 @@ function buildTotalChart() {
       });
     }
   };
-
   totalChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -874,25 +847,22 @@ function buildTotalChart() {
       }
     }
   });
-
-  // Build stats panel
   const statsBody = document.getElementById('total-stats-body');
   const maxVal = Math.max.apply(null, totals);
   statsBody.innerHTML = totals.map(function(v, i) {
     const chg = changes[i];
     const chgHTML = chg !== null
-      ? '<span style="font-size:10px;color:' + (chg >= 0 ? '#34d399' : '#f87171') + '">' + (chg >= 0 ? '+' : '') + chg + '%</span>'
-      : '';
+? '<span style="font-size:10px;color:' + (chg >= 0 ? '#34d399' : '#f87171') + '">' + (chg >= 0 ? '+' : '') + chg + '%</span>'
+: '';
     const isMax = v === maxVal;
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #1a1f2e">'
-      + '<span style="font-size:10px;font-family:\"IBM Plex Mono\",monospace;color:' + (PERIODS[i].startsWith('26') ? '#e2e8f0' : '#6b7280') + '">'  + PERIODS[i] + '</span>'
+      + '<span style="font-size:10px;font-family:\"IBM Plex Mono\",monospace;color:' + (PERIODS[i].startsWith('26') ? '#e2e8f0' : '#6b7280') + '">' + PERIODS[i] + '</span>'
       + '<div style="text-align:right">'
-      + '<span style="font-family:\"IBM Plex Mono\",monospace;font-size:10px;font-weight:600;color:' + (isMax ? '#fbbf24' : '#38bdf8') + '">'  + v.toLocaleString() + '</span>'
+      + '<span style="font-family:\"IBM Plex Mono\",monospace;font-size:10px;font-weight:600;color:' + (isMax ? '#fbbf24' : '#38bdf8') + '">' + v.toLocaleString() + '</span>'
       + (chgHTML ? '<br>' + chgHTML : '')
       + '</div></div>';
   }).join('');
 }
-
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(function(t, i) {
     t.classList.toggle('active', (i===0&&tab==='data')||(i===1&&tab==='chart')||(i===2&&tab==='total'));
@@ -903,8 +873,6 @@ function switchTab(tab) {
   if (tab === 'chart' && !chart) { buildToggles(); buildChart(); }
   if (tab === 'total' && !totalChart) { buildTotalChart(); }
 }
-
-// Init
 buildTable();
 </script>
 </body>
