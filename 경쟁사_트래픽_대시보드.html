@@ -90,6 +90,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
   <div class="tab active" tabindex="0" role="tab" aria-selected="true" onclick="switchTab('data')">트래픽 데이터</div>
   <div class="tab" tabindex="0" role="tab" aria-selected="false" onclick="switchTab('chart')">변동 그래프</div>
   <div class="tab" tabindex="0" role="tab" aria-selected="false" onclick="switchTab('total')">업계 합산 추이</div>
+  <div class="tab" tabindex="0" role="tab" aria-selected="false" onclick="switchTab('psp')">경쟁사 PSP 현황</div>
 </div>
 <div class="content active" id="tab-data">
   <div class="table-controls">
@@ -152,6 +153,29 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
       <div style="font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px">기간별 합계</div>
       <div id="total-stats-body"></div>
     </div>
+  </div>
+</div>
+<div class="content" id="tab-psp">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
+    <div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">경쟁사 원화 입출금(PSP) 채널 가동 현황</div>
+      <div style="font-size:12px;color:#64748b">시트 원문 로그 텍스트를 실시간 해석 · 최근 체크일 기준 자동 반영</div>
+      <div id="psp-updated-note" style="font-size:11px;color:#64748b;margin-top:4px"></div>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-weight:600">
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#34d399;display:inline-block"></span>가동</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#fbbf24;display:inline-block"></span>간헐/점검</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#f87171;display:inline-block"></span>불가</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#1a1f2e;border:1px solid #2a3040;display:inline-block"></span>미체크</span>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr id="psp-header-row">
+        <th class="left" style="width:150px">경쟁사</th>
+      </tr></thead>
+      <tbody id="psp-tbody"></tbody>
+    </table>
   </div>
 </div>
 <script>
@@ -1014,19 +1038,20 @@ function buildTotalChart() {
 }
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(function(t, i) {
-    const isActive = (i===0&&tab==='data')||(i===1&&tab==='chart')||(i===2&&tab==='total');
+    const isActive = (i===0&&tab==='data')||(i===1&&tab==='chart')||(i===2&&tab==='total')||(i===3&&tab==='psp');
     t.classList.toggle('active', isActive);
     t.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
   document.getElementById('tab-data').classList.toggle('active', tab==='data');
   document.getElementById('tab-chart').classList.toggle('active', tab==='chart');
   document.getElementById('tab-total').classList.toggle('active', tab==='total');
+  document.getElementById('tab-psp').classList.toggle('active', tab==='psp');
   if (tab === 'chart' && !chart) { buildToggles(); buildChart(); }
   if (tab === 'total' && !totalChart) { buildTotalChart(); }
 }
 // Tab 키로 탭 전환: 탭 버튼에 포커스가 있을 때만 동작, 순환 이동. 그 외 영역에서는 Tab 기본 동작 유지.
 (function() {
-  const TAB_ORDER = ['data', 'chart', 'total'];
+  const TAB_ORDER = ['data', 'chart', 'total', 'psp'];
   document.addEventListener('keydown', function(e) {
     if (e.key !== 'Tab') return;
     const tabEls = Array.prototype.slice.call(document.querySelectorAll('.tab'));
@@ -1039,6 +1064,82 @@ function switchTab(tab) {
     switchTab(TAB_ORDER[nextIdx]);
   });
 })();
+// ── 경쟁사 PSP 현황 탭 ──────────────────────────────────────────
+// 상태 코드: on=가동, mixed=간헐/점검, off=불가, none=미체크
+// Apps Script 웹앱 API에서 실시간으로 상태값을 가져옴 (로그인 등 민감정보는 시트에서 아예 안 넘어옴)
+const PSP_API_URL = 'https://script.google.com/macros/s/AKfycbw7Cpv2YRtlQ1Egn0KOhoaNzjZj3NnTQoohKzX7pwPHG8PxR8lBWdRwG4uMZn0bPYamWQ/exec';
+const PSP_MAX_COLS = 14; // 표가 너무 넓어지지 않도록 최근 N개 체크 날짜만 표시 (스크롤로 과거도 확인 가능)
+const PSP_STYLE = {
+  on:    {bg:'rgba(52,211,153,0.22)', fg:'#6ee7b7', label:'가동'},
+  mixed: {bg:'rgba(251,191,36,0.22)', fg:'#fde68a', label:'간헐'},
+  off:   {bg:'rgba(248,113,113,0.22)', fg:'#fca5a5', label:'불가'},
+  none:  {bg:'transparent', fg:'#374151', label:'—'}
+};
+function pspCell(code) {
+  const st = PSP_STYLE[code] || PSP_STYLE.none;
+  return code === 'none' || !code
+    ? '<span class="null-cell">—</span>'
+    : '<span class="heat" style="background:' + st.bg + ';color:' + st.fg + ';font-weight:700;min-width:52px">' + st.label + '</span>';
+}
+function pspSetNote(text, isError) {
+  const el = document.getElementById('psp-updated-note');
+  if (el) { el.textContent = text; el.style.color = isError ? '#f87171' : '#64748b'; }
+}
+function renderPSPTable(payload) {
+  const headerRow = document.getElementById('psp-header-row');
+  const tbody = document.getElementById('psp-tbody');
+  headerRow.innerHTML = '<th class="left" style="width:150px">경쟁사</th>';
+  tbody.innerHTML = '';
+
+  const brokers = Object.keys(payload.data || {}).filter(function (b) {
+    // 체크 기록이 전혀 없는(전부 none) 행은 실제 모니터링 대상이 아닌 요약행일 가능성이 높아 숨김
+    return (payload.data[b] || []).some(function (d) { return d.status !== 'none'; });
+  });
+  if (!brokers.length) { pspSetNote('표시할 PSP 체크 데이터가 없습니다.', true); return; }
+
+  // 모든 브로커 공통 날짜 목록(최신 PSP_MAX_COLS개)
+  const allDates = (payload.data[brokers[0]] || []).map(function (d) { return d.date; });
+  const dates = allDates.slice(Math.max(allDates.length - PSP_MAX_COLS, 0));
+
+  dates.forEach(function (d) {
+    const th = document.createElement('th');
+    th.textContent = d.slice(5).replace('-', '.'); // MM.DD 형태로 축약
+    th.title = d;
+    headerRow.appendChild(th);
+  });
+
+  brokers.forEach(function (broker) {
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.className = 'name-cell';
+    nameTd.textContent = broker;
+    tr.appendChild(nameTd);
+    const rowData = payload.data[broker] || [];
+    const rowSlice = rowData.slice(Math.max(rowData.length - PSP_MAX_COLS, 0));
+    rowSlice.forEach(function (d) {
+      const td = document.createElement('td');
+      td.innerHTML = pspCell(d.status);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  const updated = payload.updatedAt ? new Date(payload.updatedAt) : null;
+  pspSetNote(updated ? '마지막 갱신: ' + updated.toLocaleString('ko-KR') + ' (페이지를 새로고침하면 최신 상태를 다시 불러옵니다)' : '', false);
+}
+function buildPSPTab() {
+  pspSetNote('불러오는 중...', false);
+  fetch(PSP_API_URL)
+    .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+    .then(function (payload) {
+      if (payload.error) { pspSetNote('오류: ' + payload.error, true); return; }
+      renderPSPTable(payload);
+    })
+    .catch(function (err) {
+      pspSetNote('실시간 데이터를 불러오지 못했습니다 (' + err.message + '). 네트워크 문제이거나 API 배포 설정을 확인해주세요.', true);
+    });
+}
+buildPSPTab();
 buildTable();
 </script>
 </body>
