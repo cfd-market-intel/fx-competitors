@@ -33,6 +33,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab:focus{outline:none;color:var(--text);box-shadow:inset 0 0 0 1px rgba(56,189,248,.4)}
 .tab:focus-visible{box-shadow:inset 0 0 0 1px var(--accent)}
+#psp-search::placeholder{color:#6b7280}
+#psp-header-row th{color:#cbd5e1;font-size:11.5px;font-weight:700;letter-spacing:.02em}
 .content{display:none;padding:28px 32px}.content.active{display:block}
 .table-controls{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .section-label{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
@@ -158,7 +160,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
 <div class="content" id="tab-psp">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
     <div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">경쟁사 원화 입출금(PSP) 채널 가동 현황</div>
+      <div style="font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;color:#e2e8f0;margin-bottom:4px">경쟁사 원화 입출금(PSP) 채널 가동 현황</div>
       <div style="font-size:12px;color:#64748b">시트 원문 로그 텍스트를 실시간 해석 · 최근 체크일 기준 자동 반영</div>
       <div id="psp-updated-note" style="font-size:11px;color:#64748b;margin-top:4px"></div>
     </div>
@@ -171,7 +173,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
   </div>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
     <input id="psp-search" type="text" placeholder="브로커 검색... (쉼표로 여러 개, 예: HFM, XM)" oninput="filterPSPTable()"
-      style="background:#0d0f14;border:1px solid #1e2330;border-radius:4px;padding:6px 11px;color:#e2e8f0;font-family:'Noto Sans KR',sans-serif;font-size:12px;outline:none;width:280px"
+      style="background:#0d0f14;border:1px solid #1e2330;border-radius:4px;padding:6px 11px;color:#e2e8f0;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;outline:none;width:280px"
       onfocus="this.style.borderColor='#38bdf8'" onblur="this.style.borderColor='#1e2330'">
     <span id="psp-filter-count" style="font-size:11px;color:var(--muted)"></span>
   </div>
