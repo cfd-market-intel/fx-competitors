@@ -169,6 +169,12 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
       <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#1a1f2e;border:1px solid #2a3040;display:inline-block"></span>미체크</span>
     </div>
   </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <input id="psp-search" type="text" placeholder="브로커 검색... (쉼표로 여러 개, 예: HFM, XM)" oninput="filterPSPTable()"
+      style="background:#0d0f14;border:1px solid #1e2330;border-radius:4px;padding:6px 11px;color:#e2e8f0;font-family:'Noto Sans KR',sans-serif;font-size:12px;outline:none;width:280px"
+      onfocus="this.style.borderColor='#38bdf8'" onblur="this.style.borderColor='#1e2330'">
+    <span id="psp-filter-count" style="font-size:11px;color:var(--muted)"></span>
+  </div>
   <div class="table-wrap">
     <table>
       <thead><tr id="psp-header-row">
@@ -1110,6 +1116,7 @@ function renderPSPTable(payload) {
 
   brokers.forEach(function (broker) {
     const tr = document.createElement('tr');
+    tr.setAttribute('data-broker', broker.toLowerCase());
     const nameTd = document.createElement('td');
     nameTd.className = 'name-cell';
     nameTd.textContent = broker;
@@ -1126,6 +1133,22 @@ function renderPSPTable(payload) {
 
   const updated = payload.updatedAt ? new Date(payload.updatedAt) : null;
   pspSetNote(updated ? '마지막 갱신: ' + updated.toLocaleString('ko-KR') + ' (페이지를 새로고침하면 최신 상태를 다시 불러옵니다)' : '', false);
+  filterPSPTable();
+}
+function filterPSPTable() {
+  const raw = (document.getElementById('psp-search') || {}).value || '';
+  // 쉼표로 구분해 여러 브로커를 한 번에 볼 수 있게 함 (예: "HFM, XM")
+  const terms = raw.split(',').map(function (t) { return t.trim().toLowerCase(); }).filter(Boolean);
+  const rows = document.querySelectorAll('#psp-tbody tr');
+  let shown = 0;
+  rows.forEach(function (tr) {
+    const name = tr.getAttribute('data-broker') || '';
+    const match = terms.length === 0 || terms.some(function (t) { return name.indexOf(t) !== -1; });
+    tr.style.display = match ? '' : 'none';
+    if (match) shown++;
+  });
+  const countEl = document.getElementById('psp-filter-count');
+  if (countEl) countEl.textContent = terms.length ? shown + '개 표시 중' : '';
 }
 function buildPSPTab() {
   pspSetNote('불러오는 중...', false);
