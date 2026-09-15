@@ -1076,7 +1076,6 @@ function switchTab(tab) {
 // 상태 코드: on=가동, mixed=간헐/점검, off=불가, none=미체크
 // Apps Script 웹앱 API에서 실시간으로 상태값을 가져옴 (로그인 등 민감정보는 시트에서 아예 안 넘어옴)
 const PSP_API_URL = 'https://script.google.com/macros/s/AKfycbw7Cpv2YRtlQ1Egn0KOhoaNzjZj3NnTQoohKzX7pwPHG8PxR8lBWdRwG4uMZn0bPYamWQ/exec';
-const PSP_MAX_COLS = Infinity; // 전체 체크 날짜를 다 보여줌 (표가 넓어지면 좌우 스크롤로 확인)
 const PSP_STYLE = {
   on:    {bg:'rgba(52,211,153,0.22)', fg:'#6ee7b7', label:'가동'},
   mixed: {bg:'rgba(251,191,36,0.22)', fg:'#fde68a', label:'간헐'},
@@ -1093,6 +1092,22 @@ function pspSetNote(text, isError) {
   const el = document.getElementById('psp-updated-note');
   if (el) { el.textContent = text; el.style.color = isError ? '#f87171' : '#64748b'; }
 }
+// "YYYY-MM-DD" 날짜를 "n월 n주" 라벨로 변환 (해당 월의 며칠째 주인지: 1~7일=1주, 8~14일=2주 ...)
+function pspWeekKey(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const weekNum = Math.ceil(d / 7);
+  return { key: y + '-' + m + '-W' + weekNum, label: m + '월' + weekNum + '주' };
+}
+// 한 주 안의 여러 날짜 상태를 하나로 집계: 전부 가동→가동, 전부 불가→불가, 섞여있으면(간헐 포함)→간헐
+function pspAggregateWeek(statuses) {
+  const real = statuses.filter(function (s) { return s !== 'none'; });
+  if (!real.length) return 'none';
+  const allOn = real.every(function (s) { return s === 'on'; });
+  if (allOn) return 'on';
+  const allOff = real.every(function (s) { return s === 'off'; });
+  if (allOff) return 'off';
+  return 'mixed';
+}
 function renderPSPTable(payload) {
   const headerRow = document.getElementById('psp-header-row');
   const tbody = document.getElementById('psp-tbody');
@@ -1103,14 +1118,20 @@ function renderPSPTable(payload) {
   const brokers = Object.keys(payload.data || {});
   if (!brokers.length) { pspSetNote('표시할 PSP 체크 데이터가 없습니다.', true); return; }
 
-  // 모든 브로커 공통 날짜 목록(최신 PSP_MAX_COLS개)
-  const allDates = (payload.data[brokers[0]] || []).map(function (d) { return d.date; });
-  const dates = allDates.slice(Math.max(allDates.length - PSP_MAX_COLS, 0));
+  // 모든 브로커의 날짜를 "n월 n주" 단위로 묶어 시간순 주차 목록 생성
+  const weekOrder = []; // [{key, label}]
+  const weekSeen = {};
+  brokers.forEach(function (broker) {
+    (payload.data[broker] || []).forEach(function (d) {
+      const wk = pspWeekKey(d.date);
+      if (!weekSeen[wk.key]) { weekSeen[wk.key] = true; weekOrder.push(wk); }
+    });
+  });
+  weekOrder.sort(function (a, b) { return a.key.localeCompare(b.key); });
 
-  dates.forEach(function (d) {
+  weekOrder.forEach(function (wk) {
     const th = document.createElement('th');
-    th.textContent = d.slice(5).replace('-', '.'); // MM.DD 형태로 축약
-    th.title = d;
+    th.textContent = wk.label;
     headerRow.appendChild(th);
   });
 
@@ -1121,18 +1142,24 @@ function renderPSPTable(payload) {
     nameTd.className = 'name-cell';
     nameTd.textContent = broker;
     tr.appendChild(nameTd);
-    const rowData = payload.data[broker] || [];
-    const rowSlice = rowData.slice(Math.max(rowData.length - PSP_MAX_COLS, 0));
-    rowSlice.forEach(function (d) {
+
+    const byWeek = {};
+    (payload.data[broker] || []).forEach(function (d) {
+      const wk = pspWeekKey(d.date).key;
+      (byWeek[wk] = byWeek[wk] || []).push(d.status);
+    });
+
+    weekOrder.forEach(function (wk) {
       const td = document.createElement('td');
-      td.innerHTML = pspCell(d.status);
+      const agg = byWeek[wk.key] ? pspAggregateWeek(byWeek[wk.key]) : 'none';
+      td.innerHTML = pspCell(agg);
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
 
   const updated = payload.updatedAt ? new Date(payload.updatedAt) : null;
-  pspSetNote(updated ? '마지막 갱신: ' + updated.toLocaleString('ko-KR') + ' (페이지를 새로고침하면 최신 상태를 다시 불러옵니다)' : '', false);
+  pspSetNote(updated ? '마지막 갱신: ' + updated.toLocaleString('ko-KR') + ' · 주 단위 집계(해당 주 체크 전부 가동=가동, 전부 불가=불가, 섞이면 간헐)' : '', false);
   filterPSPTable();
 }
 function filterPSPTable() {
