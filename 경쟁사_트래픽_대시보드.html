@@ -1076,7 +1076,7 @@ function switchTab(tab) {
 // 상태 코드: on=가동, mixed=간헐/점검, off=불가, none=미체크
 // Apps Script 웹앱 API에서 실시간으로 상태값을 가져옴 (로그인 등 민감정보는 시트에서 아예 안 넘어옴)
 const PSP_API_URL = 'https://script.google.com/macros/s/AKfycbw7Cpv2YRtlQ1Egn0KOhoaNzjZj3NnTQoohKzX7pwPHG8PxR8lBWdRwG4uMZn0bPYamWQ/exec';
-const PSP_MAX_COLS = 14; // 표가 너무 넓어지지 않도록 최근 N개 체크 날짜만 표시 (스크롤로 과거도 확인 가능)
+const PSP_MAX_COLS = Infinity; // 전체 체크 날짜를 다 보여줌 (표가 넓어지면 좌우 스크롤로 확인)
 const PSP_STYLE = {
   on:    {bg:'rgba(52,211,153,0.22)', fg:'#6ee7b7', label:'가동'},
   mixed: {bg:'rgba(251,191,36,0.22)', fg:'#fde68a', label:'간헐'},
