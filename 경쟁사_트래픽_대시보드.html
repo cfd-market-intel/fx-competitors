@@ -69,6 +69,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
 .pulse-ring{position:absolute;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:pulseRing 2s ease-out infinite;opacity:0}
 @keyframes pulseRing{0%{transform:translate(-50%,-50%) scale(.6);opacity:.8}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
 #chart-pulse-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @media (max-width: 860px) {
   .header{flex-direction:column;align-items:flex-start;gap:8px;padding:20px 16px 16px}
   .header-meta{margin-left:0;text-align:left}
@@ -181,6 +182,11 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     <input id="psp-search" type="text" placeholder="브로커 검색... (쉼표로 여러 개, 예: HFM, XM)" oninput="filterPSPTable()"
       style="background:#0d0f14;border:1px solid #1e2330;border-radius:4px;padding:6px 11px;color:#e2e8f0;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;outline:none;width:280px"
       onfocus="this.style.borderColor='#38bdf8'" onblur="this.style.borderColor='#1e2330'">
+    <button id="psp-refresh-btn" onclick="buildPSPTab()"
+      style="display:flex;align-items:center;gap:6px;background:#151820;border:1px solid #1e2330;border-radius:4px;padding:6px 13px;color:#e2e8f0;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;cursor:pointer"
+      onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='#1e2330'">
+      <span id="psp-refresh-icon" style="display:inline-block">↻</span> 새로고침
+    </button>
     <span id="psp-filter-count" style="font-size:11px;color:var(--muted)"></span>
   </div>
   <div class="table-wrap">
@@ -1184,6 +1190,10 @@ function filterPSPTable() {
   if (countEl) countEl.textContent = terms.length ? shown + '개 표시 중' : '';
 }
 function buildPSPTab() {
+  const btn = document.getElementById('psp-refresh-btn');
+  const icon = document.getElementById('psp-refresh-icon');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.55'; btn.style.cursor = 'default'; }
+  if (icon) { icon.style.animation = 'spin 0.8s linear infinite'; }
   pspSetNote('불러오는 중...', false);
   fetch(PSP_API_URL)
     .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
@@ -1193,6 +1203,10 @@ function buildPSPTab() {
     })
     .catch(function (err) {
       pspSetNote('실시간 데이터를 불러오지 못했습니다 (' + err.message + '). 네트워크 문제이거나 API 배포 설정을 확인해주세요.', true);
+    })
+    .finally(function () {
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+      if (icon) { icon.style.animation = ''; }
     });
 }
 buildPSPTab();
