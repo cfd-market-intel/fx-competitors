@@ -1099,10 +1099,8 @@ function renderPSPTable(payload) {
   headerRow.innerHTML = '<th class="left" style="width:150px">경쟁사</th>';
   tbody.innerHTML = '';
 
-  const brokers = Object.keys(payload.data || {}).filter(function (b) {
-    // 체크 기록이 전혀 없는(전부 none) 행은 실제 모니터링 대상이 아닌 요약행일 가능성이 높아 숨김
-    return (payload.data[b] || []).some(function (d) { return d.status !== 'none'; });
-  });
+  // 요약행(IX, HM 등)은 API에서 이미 제외하고 내려주므로 여기선 추가 필터 없이 그대로 사용
+  const brokers = Object.keys(payload.data || {});
   if (!brokers.length) { pspSetNote('표시할 PSP 체크 데이터가 없습니다.', true); return; }
 
   // 모든 브로커 공통 날짜 목록(최신 PSP_MAX_COLS개)
