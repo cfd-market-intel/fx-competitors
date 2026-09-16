@@ -82,7 +82,9 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
   .responsive-row{flex-direction:column}
   #side-panel{width:100% !important;max-height:280px}
   #total-stats{width:100% !important}
-  #tab-total .chart-container{height:300px}
+  .chart-container-total{height:300px}
+  .chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px}
+  .chart-scroll .chart-container,.chart-scroll .chart-container-total{min-width:640px}
   #concentration-stat{text-align:left !important;margin-top:8px}
   table{font-size:11px}
   th,td{padding:6px 8px}
@@ -132,9 +134,11 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
 <div class="content" id="tab-chart">
   <div class="chart-controls" id="broker-toggles"></div>
   <div class="responsive-row" style="display:flex;gap:16px;align-items:flex-start">
-    <div class="chart-container" style="flex:1;min-width:0">
-      <canvas id="traffic-chart"></canvas>
-      <div id="chart-pulse-layer"></div>
+    <div class="chart-scroll" style="flex:1;min-width:0">
+      <div class="chart-container" style="min-width:0">
+        <canvas id="traffic-chart"></canvas>
+        <div id="chart-pulse-layer"></div>
+      </div>
     </div>
     <div id="side-panel" style="width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow-y:auto;min-height:300px;max-height:480px">
       <div id="side-rank">
@@ -161,8 +165,10 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     <div id="concentration-stat" style="text-align:right;flex-shrink:0"></div>
   </div>
   <div class="responsive-row" style="display:flex;gap:16px;align-items:flex-start">
-    <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;height:420px;position:relative">
-      <canvas id="total-chart"></canvas>
+    <div class="chart-scroll" style="flex:1;min-width:0">
+      <div class="chart-container-total" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;height:420px;position:relative">
+        <canvas id="total-chart"></canvas>
+      </div>
     </div>
     <div id="total-stats" style="width:200px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px">
       <div style="font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px">기간별 합계</div>
