@@ -1205,13 +1205,15 @@ function renderPSPTable(payload) {
   } else {
     // 일별 보기: 모든 브로커에 공통되는 체크 날짜를 시간순으로 나열
     const dateSet = {};
-    const dateOrder = [];
+    let dateOrder = [];
     brokers.forEach(function (broker) {
       (payload.data[broker] || []).forEach(function (d) {
         if (!dateSet[d.date]) { dateSet[d.date] = true; dateOrder.push(d.date); }
       });
     });
     dateOrder.sort();
+    const PSP_DAY_MAX_COLS = 20; // 일별 보기는 최근 20개만 (과거 전체 흐름은 '주간' 탭 참고)
+    dateOrder = dateOrder.slice(Math.max(dateOrder.length - PSP_DAY_MAX_COLS, 0));
 
     const PSP_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
     dateOrder.forEach(function (dt, idx) {
