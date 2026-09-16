@@ -199,7 +199,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     </div>
     <span id="psp-filter-count" style="font-size:11px;color:var(--muted)"></span>
   </div>
-  <div class="table-wrap">
+  <div class="table-wrap" id="psp-table-wrap">
     <table>
       <thead><tr id="psp-header-row">
         <th class="left" style="width:150px">경쟁사</th>
@@ -1240,6 +1240,13 @@ function renderPSPTable(payload) {
   const updated = payload.updatedAt ? new Date(payload.updatedAt) : null;
   pspSetNote(updated ? '마지막 갱신: ' + updated.toLocaleString('ko-KR') : '', false);
   filterPSPTable();
+
+  // 컬럼이 많아지면 왼쪽(과거)부터 보여서 "최신 데이터가 없나?" 헷갈릴 수 있어
+  // 렌더링 직후 표를 오른쪽 끝(최신 기간)으로 자동 스크롤 — 주간/일별 모드 공통
+  requestAnimationFrame(function () {
+    const wrap = document.getElementById('psp-table-wrap');
+    if (wrap) wrap.scrollLeft = wrap.scrollWidth;
+  });
 }
 function filterPSPTable() {
   const raw = (document.getElementById('psp-search') || {}).value || '';
