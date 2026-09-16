@@ -187,6 +187,12 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
       onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='#1e2330'">
       <span id="psp-refresh-icon" style="display:inline-block">↻</span> 새로고침
     </button>
+    <div style="display:flex;border:1px solid #1e2330;border-radius:4px;overflow:hidden">
+      <button id="psp-view-week" onclick="setPSPView('week')"
+        style="background:#38bdf8;border:none;padding:6px 14px;color:#0a0c10;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer">주간</button>
+      <button id="psp-view-day" onclick="setPSPView('day')"
+        style="background:#151820;border:none;padding:6px 14px;color:#94a3b8;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer">일별</button>
+    </div>
     <span id="psp-filter-count" style="font-size:11px;color:var(--muted)"></span>
   </div>
   <div class="table-wrap">
@@ -1120,7 +1126,26 @@ function pspAggregateWeek(statuses) {
   if (allOff) return 'off';
   return 'mixed';
 }
+let pspLastPayload = null;
+let pspViewMode = 'week'; // 'week' | 'day'
+
+function setPSPView(mode) {
+  if (mode === pspViewMode) return;
+  pspViewMode = mode;
+  const weekBtn = document.getElementById('psp-view-week');
+  const dayBtn = document.getElementById('psp-view-day');
+  const active = { background: '#38bdf8', color: '#0a0c10' };
+  const inactive = { background: '#151820', color: '#94a3b8' };
+  const setStyle = (el, s) => { el.style.background = s.background; el.style.color = s.color; };
+  if (weekBtn && dayBtn) {
+    setStyle(weekBtn, mode === 'week' ? active : inactive);
+    setStyle(dayBtn, mode === 'day' ? active : inactive);
+  }
+  if (pspLastPayload) renderPSPTable(pspLastPayload);
+}
+
 function renderPSPTable(payload) {
+  pspLastPayload = payload;
   const headerRow = document.getElementById('psp-header-row');
   const tbody = document.getElementById('psp-tbody');
   headerRow.innerHTML = '<th class="left" style="width:150px">경쟁사</th>';
@@ -1130,45 +1155,83 @@ function renderPSPTable(payload) {
   const brokers = Object.keys(payload.data || {});
   if (!brokers.length) { pspSetNote('표시할 PSP 체크 데이터가 없습니다.', true); return; }
 
-  // 모든 브로커의 날짜를 "n월 n주" 단위로 묶어 시간순 주차 목록 생성
-  const weekOrder = []; // [{key, label}]
-  const weekSeen = {};
-  brokers.forEach(function (broker) {
-    (payload.data[broker] || []).forEach(function (d) {
-      const wk = pspWeekKey(d.date);
-      if (!weekSeen[wk.key]) { weekSeen[wk.key] = true; weekOrder.push(wk); }
+  if (pspViewMode === 'week') {
+    // 모든 브로커의 날짜를 "n월 n주" 단위로 묶어 시간순 주차 목록 생성
+    const weekOrder = []; // [{key, label}]
+    const weekSeen = {};
+    brokers.forEach(function (broker) {
+      (payload.data[broker] || []).forEach(function (d) {
+        const wk = pspWeekKey(d.date);
+        if (!weekSeen[wk.key]) { weekSeen[wk.key] = true; weekOrder.push(wk); }
+      });
     });
-  });
-  weekOrder.sort(function (a, b) { return a.key.localeCompare(b.key); });
-
-  weekOrder.forEach(function (wk) {
-    const th = document.createElement('th');
-    th.textContent = wk.label;
-    headerRow.appendChild(th);
-  });
-
-  brokers.forEach(function (broker) {
-    const tr = document.createElement('tr');
-    tr.setAttribute('data-broker', broker.toLowerCase());
-    const nameTd = document.createElement('td');
-    nameTd.className = 'name-cell';
-    nameTd.textContent = broker;
-    tr.appendChild(nameTd);
-
-    const byWeek = {};
-    (payload.data[broker] || []).forEach(function (d) {
-      const wk = pspWeekKey(d.date).key;
-      (byWeek[wk] = byWeek[wk] || []).push(d.status);
-    });
+    weekOrder.sort(function (a, b) { return a.key.localeCompare(b.key); });
 
     weekOrder.forEach(function (wk) {
-      const td = document.createElement('td');
-      const agg = byWeek[wk.key] ? pspAggregateWeek(byWeek[wk.key]) : 'none';
-      td.innerHTML = pspCell(agg);
-      tr.appendChild(td);
+      const th = document.createElement('th');
+      th.textContent = wk.label;
+      headerRow.appendChild(th);
     });
-    tbody.appendChild(tr);
-  });
+
+    brokers.forEach(function (broker) {
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-broker', broker.toLowerCase());
+      const nameTd = document.createElement('td');
+      nameTd.className = 'name-cell';
+      nameTd.textContent = broker;
+      tr.appendChild(nameTd);
+
+      const byWeek = {};
+      (payload.data[broker] || []).forEach(function (d) {
+        const wk = pspWeekKey(d.date).key;
+        (byWeek[wk] = byWeek[wk] || []).push(d.status);
+      });
+
+      weekOrder.forEach(function (wk) {
+        const td = document.createElement('td');
+        const agg = byWeek[wk.key] ? pspAggregateWeek(byWeek[wk.key]) : 'none';
+        td.innerHTML = pspCell(agg);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  } else {
+    // 일별 보기: 모든 브로커에 공통되는 체크 날짜를 시간순으로 나열
+    const dateSet = {};
+    const dateOrder = [];
+    brokers.forEach(function (broker) {
+      (payload.data[broker] || []).forEach(function (d) {
+        if (!dateSet[d.date]) { dateSet[d.date] = true; dateOrder.push(d.date); }
+      });
+    });
+    dateOrder.sort();
+
+    dateOrder.forEach(function (dt) {
+      const th = document.createElement('th');
+      th.textContent = dt.slice(5).replace('-', '.'); // MM.DD
+      th.title = dt;
+      headerRow.appendChild(th);
+    });
+
+    brokers.forEach(function (broker) {
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-broker', broker.toLowerCase());
+      const nameTd = document.createElement('td');
+      nameTd.className = 'name-cell';
+      nameTd.textContent = broker;
+      tr.appendChild(nameTd);
+
+      const byDate = {};
+      (payload.data[broker] || []).forEach(function (d) { byDate[d.date] = d.status; });
+
+      dateOrder.forEach(function (dt) {
+        const td = document.createElement('td');
+        td.innerHTML = pspCell(byDate[dt] || 'none');
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
 
   const updated = payload.updatedAt ? new Date(payload.updatedAt) : null;
   pspSetNote(updated ? '마지막 갱신: ' + updated.toLocaleString('ko-KR') : '', false);
