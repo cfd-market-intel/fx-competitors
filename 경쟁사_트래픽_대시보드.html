@@ -1079,9 +1079,33 @@ function switchTab(tab) {
   document.getElementById('tab-chart').classList.toggle('active', tab==='chart');
   document.getElementById('tab-total').classList.toggle('active', tab==='total');
   document.getElementById('tab-psp').classList.toggle('active', tab==='psp');
-  if (tab === 'chart' && !chart) { buildToggles(); buildChart(); }
-  if (tab === 'total' && !totalChart) { buildTotalChart(); }
+  // 탭이 display:none → block으로 바뀐 직후엔 브라우저가 아직 실제 레이아웃 크기를 확정하기 전이라
+  // 그 타이밍에 Chart.js가 캔버스를 만들면(특히 모바일) 크기가 0으로 잘못 잡혀 깨져 보일 수 있음.
+  // 다음 프레임까지 한 박자 늦춰서 생성/리사이즈하면 항상 실제 화면 크기를 정확히 읽음.
+  if (tab === 'chart') {
+    requestAnimationFrame(function () {
+      if (!chart) { buildToggles(); buildChart(); }
+      else { chart.resize(); }
+    });
+  }
+  if (tab === 'total') {
+    requestAnimationFrame(function () {
+      if (!totalChart) { buildTotalChart(); }
+      else { totalChart.resize(); }
+    });
+  }
 }
+// 화면 회전/창 크기 변경 시에도 차트가 새 크기에 맞게 다시 그려지도록 보정
+window.addEventListener('resize', function () {
+  if (chart) chart.resize();
+  if (totalChart) totalChart.resize();
+});
+window.addEventListener('orientationchange', function () {
+  setTimeout(function () {
+    if (chart) chart.resize();
+    if (totalChart) totalChart.resize();
+  }, 300);
+});
 // Tab 키로 탭 전환: 탭 버튼에 포커스가 있을 때만 동작, 순환 이동. 그 외 영역에서는 Tab 기본 동작 유지.
 (function() {
   const TAB_ORDER = ['data', 'chart', 'total', 'psp'];
