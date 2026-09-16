@@ -1213,9 +1213,17 @@ function renderPSPTable(payload) {
     });
     dateOrder.sort();
 
-    dateOrder.forEach(function (dt) {
+    const PSP_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+    dateOrder.forEach(function (dt, idx) {
       const th = document.createElement('th');
-      th.textContent = dt.slice(5).replace('-', '.'); // MM.DD
+      const mmdd = dt.slice(5).replace('-', '.'); // MM.DD
+      const isRecent = idx >= dateOrder.length - 5;
+      if (isRecent) {
+        const dow = PSP_WEEKDAYS[new Date(dt + 'T00:00:00').getDay()];
+        th.innerHTML = mmdd + '<br><span style="font-size:9.5px;color:#6b7280;font-weight:600">(' + dow + ')</span>';
+      } else {
+        th.textContent = mmdd;
+      }
       th.title = dt;
       headerRow.appendChild(th);
     });
