@@ -120,7 +120,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
       style="margin-left:8px;background:#0d0f14;border:1px solid #1e2330;border-radius:4px;padding:5px 10px;color:#e2e8f0;font-family:'Noto Sans KR',sans-serif;font-size:11px;outline:none;width:140px"
       onfocus="this.style.borderColor='#38bdf8'" onblur="this.style.borderColor='#1e2330'">
   </div>
-  <div class="table-wrap">
+  <div class="table-wrap" id="data-table-wrap">
     <table>
       <thead><tr>
         <th class="left" style="width:36px">Tier</th>
@@ -488,6 +488,10 @@ function buildTable(filterTier, searchQ) {
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
+  });
+  requestAnimationFrame(function () {
+    const wrap = document.getElementById('data-table-wrap');
+    if (wrap) wrap.scrollLeft = wrap.scrollWidth;
   });
 }
 function filterTable(tier) {
@@ -1242,8 +1246,8 @@ function renderPSPTable(payload) {
       });
     });
     dateOrder.sort();
-    const PSP_DAY_MAX_COLS = 20; // 일별 보기는 최근 20개만 (과거 전체 흐름은 '주간' 탭 참고)
-    dateOrder = dateOrder.slice(Math.max(dateOrder.length - PSP_DAY_MAX_COLS, 0));
+    // 전체 날짜를 다 렌더링하고, 아래 자동 스크롤로 기본 화면엔 최신 것만 보이게 함
+    // (과거 데이터는 지우지 않고 왼쪽으로 스크롤하면 그대로 확인 가능)
 
     const PSP_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
     dateOrder.forEach(function (dt, idx) {
