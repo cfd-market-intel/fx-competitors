@@ -102,7 +102,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     <div class="header-label">IX Internal · CFD/FX Competitive Intelligence</div>
     <h1>경쟁사 트래픽 분석</h1>
   </div>
-  <div class="header-meta">2025.03 — 2026.09<br>Itemscout 기준 · 격주 수집<br>26개사 모니터링</div>
+  <div class="header-meta">2025.03 — 2026.10<br>Itemscout 기준 · 격주 수집<br>26개사 모니터링</div>
 </div>
 <div class="tabs" role="tablist">
   <div class="tab active" tabindex="0" role="tab" aria-selected="true" onclick="switchTab('data')">트래픽 데이터</div>
@@ -126,7 +126,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
       <thead><tr>
         <th class="left" style="width:36px">Tier</th>
         <th class="left" style="width:130px">경쟁사</th>
-        <th>25.03</th><th>25.04</th><th>25.05</th><th>25.06</th><th>25.07</th><th>25.08</th><th>25.09</th><th>25.10</th><th>25.11</th><th>25.12</th><th>26.01</th><th>26.02</th><th>26.03</th><th>26.04</th><th>26.05</th><th>26.06</th><th>26.07</th><th>26.08</th><th>26.09</th>
+        <th>25.03</th><th>25.04</th><th>25.05</th><th>25.06</th><th>25.07</th><th>25.08</th><th>25.09</th><th>25.10</th><th>25.11</th><th>25.12</th><th>26.01</th><th>26.02</th><th>26.03</th><th>26.04</th><th>26.05</th><th>26.06</th><th>26.07</th><th>26.08</th><th>26.09</th><th>26.10</th>
       </tr></thead>
       <tbody id="data-tbody"></tbody>
     </table>
@@ -143,7 +143,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     </div>
     <div id="side-panel" style="width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow-y:auto;min-height:300px;max-height:480px">
       <div id="side-rank">
-        <div style="padding:12px 14px 8px;font-size:11.5px;font-weight:700;font-family:'Noto Sans KR',sans-serif;color:#94a3b8;letter-spacing:.02em">최신 순위 (26.09)</div>
+        <div style="padding:12px 14px 8px;font-size:11.5px;font-weight:700;font-family:'Noto Sans KR',sans-serif;color:#94a3b8;letter-spacing:.02em">최신 순위 (26.10)</div>
         <div id="rank-list" style="padding:0 14px 12px"></div>
       </div>
       <div id="side-detail" style="display:none">
@@ -219,34 +219,34 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
   </div>
 </div>
 <script>
-const PERIODS = ["25.03","25.04","25.05","25.06","25.07","25.08","25.09","25.10","25.11","25.12","26.01","26.02","26.03","26.04","26.05","26.06","26.07","26.08","26.09"];
+const PERIODS = ["25.03","25.04","25.05","25.06","25.07","25.08","25.09","25.10","25.11","25.12","26.01","26.02","26.03","26.04","26.05","26.06","26.07","26.08","26.09","26.10"];
 const RAW = {
-  "인피녹스": [3120,2750,2760,2550,2250,2470,1780,2250,1850,1390,1470,2410,1930,1540,1690,2130,1550,2120,1580],
-  "컬쳐캐피탈": [1410,1530,1790,1550,1940,1520,2010,3000,2820,2910,2670,3050,2400,2690,2270,2190,1890,2330,1940],
-  "제로마켓": [1080,1370,850,880,750,740,1040,940,740,640,520,690,640,700,520,600,520,760,630],
-  "한텍마켓": [0,0,90,360,340,570,350,560,610,490,520,990,510,690,570,720,370,570,500],
-  "이지스퀘어": [580,1170,1040,460,390,490,410,670,496,601,581,2700,610,370,720,250,350,420,400],
-  "XM거래소": [null,107,73,39,83,179,195,418,820,630,540,810,470,330,290,230,220,310,260],
-  "DPrime": [null,null,null,null,null,0,20,140,380,370,410,260,290,230,170,170,210,220,160],
-  "아바트레이드": [null,280,112,100,165,173,141,313,278,180,120,100,250,193,120,60,40,110,200],
-  "RS파이낸스": [null,null,null,null,102,102,20,144,288,405,273,440,100,100,260,170,150,0,140],
-  "라이트파이낸스":[99,152,141,30,141,72,70,40,161,84,68,145,84,70,146,68,19,64,204],
-  "고마켓": [156,195,223,58,38,71,96,84,160,116,37,80,70,10,60,10,30,50,20],
-  "GFS마켓": [270,142,93,49,0,60,78,240,10,70,400,140,0,0,30,0,0,0,30],
-  "TMGM": [183,50,93,30,20,70,40,120,86,68,80,80,41,74,50,17,31,72,112],
-  "모네타마켓": [88,29,0,79,150,81,43,51,39,52,71,111,77,90,87,70,53,62,18],
-  "랜드프라임": [88,84,55,86,77,45,98,145,104,75,64,75,47,50,67,93,100,129,92],
-  "ATFX": [150,130,100,110,10,20,70,100,170,86,37,81,410,54,20,46,60,90,69],
-  "PUPrime": [30,40,35,34,31,91,69,59,25,79,132,80,124,85,88,27,51,69,74],
-  "엑스네스": [105,70,68,10,0,0,0,30,20,0,60,80,22,50,19,40,21,80,50],
-  "M4Markets": [null,null,null,null,112,270,23,41,41,18,0,20,60,12,23,20,0,66,0],
-  "트로이마켓": [null,null,null,null,7,20,90,40,30,70,25,92,16,49,25,128,43,20,50],
-  "AP마켓": [73,99,55,52,50,31,74,17,0,68,66,187,30,44,30,10,0,0,0],
-  "VTMarkets": [null,null,null,null,null,null,null,null,null,null,null,null,null,40,20,0,0,null,null],
-  "에임스캡": [null,null,null,null,10,0,16,0,0,0,20,0,0,0,0,0,0,0,0],
-  "덱시아마켓": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,45,258,150],
-  "xlence": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,4,4,5],
-  "오르비스 시큐리티즈": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,26,40,18],
+  "인피녹스": [3120,2750,2760,2550,2250,2470,1780,2250,1850,1390,1470,2410,1930,1540,1690,2130,1550,2120,1580,1440],
+  "컬쳐캐피탈": [1410,1530,1790,1550,1940,1520,2010,3000,2820,2910,2670,3050,2400,2690,2270,2190,1890,2330,1940,1640],
+  "제로마켓": [1080,1370,850,880,750,740,1040,940,740,640,520,690,640,700,520,600,520,760,630,250],
+  "한텍마켓": [0,0,90,360,340,570,350,560,610,490,520,990,510,690,570,720,370,570,500,370],
+  "이지스퀘어": [580,1170,1040,460,390,490,410,670,496,601,581,2700,610,370,720,250,350,420,400,470],
+  "XM거래소": [null,107,73,39,83,179,195,418,820,630,540,810,470,330,290,230,220,310,260,260],
+  "DPrime": [null,null,null,null,null,0,20,140,380,370,410,260,290,230,170,170,210,220,160,90],
+  "아바트레이드": [null,280,112,100,165,173,141,313,278,180,120,100,250,193,120,60,40,110,200,70],
+  "RS파이낸스": [null,null,null,null,102,102,20,144,288,405,273,440,100,100,260,170,150,0,140,100],
+  "라이트파이낸스":[99,152,141,30,141,72,70,40,161,84,68,145,84,70,146,68,19,64,204,79],
+  "고마켓": [156,195,223,58,38,71,96,84,160,116,37,80,70,10,60,10,30,50,20,20],
+  "GFS마켓": [270,142,93,49,0,60,78,240,10,70,400,140,0,0,30,0,0,0,30,0],
+  "TMGM": [183,50,93,30,20,70,40,120,86,68,80,80,41,74,50,17,31,72,112,56],
+  "모네타마켓": [88,29,0,79,150,81,43,51,39,52,71,111,77,90,87,70,53,62,18,57],
+  "랜드프라임": [88,84,55,86,77,45,98,145,104,75,64,75,47,50,67,93,100,129,92,68],
+  "ATFX": [150,130,100,110,10,20,70,100,170,86,37,81,410,54,20,46,60,90,69,68],
+  "PUPrime": [30,40,35,34,31,91,69,59,25,79,132,80,124,85,88,27,51,69,74,47],
+  "엑스네스": [105,70,68,10,0,0,0,30,20,0,60,80,22,50,19,40,21,80,50,0],
+  "M4Markets": [null,null,null,null,112,270,23,41,41,18,0,20,60,12,23,20,0,66,0,0],
+  "트로이마켓": [null,null,null,null,7,20,90,40,30,70,25,92,16,49,25,128,43,20,50,0],
+  "AP마켓": [73,99,55,52,50,31,74,17,0,68,66,187,30,44,30,10,0,0,0,0],
+  "VTMarkets": [null,null,null,null,null,null,null,null,null,null,null,null,null,40,20,0,0,null,null,null],
+  "에임스캡": [null,null,null,null,10,0,16,0,0,0,20,0,0,0,0,0,0,0,0,0],
+  "덱시아마켓": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,45,258,150,70],
+  "xlence": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,4,4,5,6],
+  "오르비스 시큐리티즈": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,26,40,18,0],
 };
 const TIERS = {
   "인피녹스":"T1","컬쳐캐피탈":"T1","제로마켓":"T1","한텍마켓":"T1","이지스퀘어":"T1",
@@ -457,6 +457,34 @@ const EVENTS = {
       {text:"야쿠브 자블로키, XTB 주식 4억 300만 달러어치(8.2% 할인) 매각 완료",url:"https://fxnewsgroup.com/forex-news/retail-forex/jakub-zablocki-completes-403m-sale-of-xtb-shares-at-8-2-discount/"}
     ]
   },
+  19: {
+    issues:[
+      {type:"promo",text:"모네타마켓 — 18 → 57 (+216.7%)",url:""},
+      {type:"promo",text:"이지스퀘어 — 400 → 470 (+17.5%)",url:""},
+      {type:"issue",text:"아바트레이드 — 200 → 70 (-65.0%)",url:""},
+      {type:"issue",text:"라이트파이낸스 — 204 → 79 (-61.3%)",url:""},
+      {type:"issue",text:"제로마켓 — 630 → 250 (-60.3%)",url:""},
+      {type:"issue",text:"덱시아마켓 — 150 → 70 (-53.3%)",url:""},
+      {type:"issue",text:"TMGM — 112 → 56 (-50.0%)",url:""},
+      {type:"issue",text:"엑스네스·트로이마켓·GFS마켓·오르비스 — 각각 전월 대비 -100.0% (0으로 하락)",url:""}
+    ],
+    brokerNews:[
+      {broker:"XM",text:"가을 특별 보너스 프로모션 (26.10.05~10.30)",url:"https://www.xmtrading.com/landing/autumn-bonus-promo-2026"},
+      {broker:"XM",text:"무제한 캐시백 프로모션을 모든 자산 및 카피 트레이딩으로 확대",url:"https://tradeinformer.com/broker-news/xm-expands-unlimited-cashback-promo-across-all-assets-and-copy-trading"},
+      {broker:"XM",text:"짧은 주기 거래대회 연속 편성 (10/5~9 $10,000 데모대회, 10/10~11 $5,000 주말 암호화폐 대회, 이후 12~16일·19~23일 데모대회)",url:"https://www.xmtrading.com/kr/promotions/competitions"},
+      {broker:"AVATrade",text:"FXCM 지분 과반수 인수 — 획기적인 기업 합병 움직임",url:"https://www.financemagnates.com/forex/avatrade-acquires-majority-of-fxcm-in-landmark-consolidation-play/"},
+      {broker:"AVATrade",text:"폴란드 지점 폐쇄 예정",url:"https://www.financemagnates.com/forex/avatrade-to-close-its-poland-branch-office/"},
+      {broker:"AXI",text:"Axi 고객이 Claude에게 MetaTrader 계정에서 거래 체결을 요청할 수 있게 됨",url:"https://www.financemagnates.com/forex/brokers/axi-clients-can-now-ask-claude-to-place-trades-in-their-metatrader-accounts/"},
+      {broker:"제로마켓",text:"추석맞이 럭키드로우 — 최소 $1부터 갤럭시 Z 폴드8까지 (26.09.15~10.09)",url:"https://www.zeromarkets.com/ko/chuseok-lucky-draw/"},
+      {broker:"M4Markets",text:"로열티 프로그램 진행 중",url:"https://m4markets.com/th/loyalty-program/"},
+      {broker:"ThreeTrader",text:"(JP) 10월 한정 「가을 축제 트레이드 캠페인」 (26.10.01~10.31)",url:"https://www.threetrader.com/jp/campaigns/autumn-festival-2026"},
+      {broker:"PUPrime",text:"새롭게 디자인된 거래 앱 출시",url:"https://www.puprime.com/a-clearer-way-to-trade-pu-prime-introduces-redesigned-trading-app"},
+      {broker:"PUPrime",text:"PU 커뮤니티 운영 중",url:"https://kr.puprime.online/pu-community/"},
+      {broker:"FXTM",text:"서비스 업그레이드와 함께 신규 고객 리워드 프로그램 'FXTM Rewards' 도입 (10/25~26 진행 예정)",url:"https://www.fxtm.com/en/help/migration-faqs"},
+      {broker:"FPMarkets",text:"(중국/홍콩/대만/마카오 한정) 10월 예금 증정 프로모션 (26.10.01~10.31)",url:"https://cna.fpmarkets.com/int/rules-for-fp-markets-depositgift-promotion-october2026"}
+    ],
+    industry:[]
+  },
 };
 const EVENT_LINES = {
   6: { label: "M4Markets\n카피트레이딩 사고", color: "#f87171" },
@@ -464,7 +492,8 @@ const EVENT_LINES = {
   15: { label: "이지스퀘어\n홈페이지 차단", color: "#f87171" },
   16: { label: "INFINOX\nAdmirals 협상", color: "#fbbf24" },
   17: { label: "덱시아마켓\n급등(+473%)", color: "#fbbf24" },
-  18: { label: "라이트파이낸스\n급등(+196%)", color: "#fbbf24" }
+  18: { label: "라이트파이낸스\n급등(+196%)", color: "#fbbf24" },
+  19: { label: "AvaTrade\nFXCM 인수", color: "#fbbf24" }
 };
 const PALETTE = ["#38bdf8","#34d399","#f59e0b","#a78bfa","#f87171","#22d3ee","#86efac","#fcd34d","#c084fc","#fca5a5","#67e8f9","#6ee7b7","#fde68a","#d8b4fe","#fecaca","#e879f9","#4ade80","#fb923c","#60a5fa","#a3e635","#f472b6","#94a3b8","#2dd4bf","#facc15","#818cf8","#e2e8f0"];
 const brokerList = Object.keys(RAW);
