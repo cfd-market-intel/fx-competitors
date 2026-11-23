@@ -103,7 +103,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     <div class="header-label">IX Internal · CFD/FX Competitive Intelligence</div>
     <h1>경쟁사 트래픽 분석</h1>
   </div>
-  <div class="header-meta">2025.03 — 2026.10<br>Itemscout 기준 · 격주 수집<br>26개사 모니터링</div>
+  <div class="header-meta">2025.03 — 2026.11<br>Itemscout 기준 · 격주 수집<br>26개사 모니터링</div>
 </div>
 <div class="tabs" role="tablist">
   <div class="tab active" tabindex="0" role="tab" aria-selected="true" onclick="switchTab('data')">트래픽 데이터</div>
@@ -127,7 +127,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
       <thead><tr>
         <th class="left" style="width:36px">Tier</th>
         <th class="left" style="width:130px">경쟁사</th>
-        <th>25.03</th><th>25.04</th><th>25.05</th><th>25.06</th><th>25.07</th><th>25.08</th><th>25.09</th><th>25.10</th><th>25.11</th><th>25.12</th><th>26.01</th><th>26.02</th><th>26.03</th><th>26.04</th><th>26.05</th><th>26.06</th><th>26.07</th><th>26.08</th><th>26.09</th><th>26.10</th>
+        <th>25.03</th><th>25.04</th><th>25.05</th><th>25.06</th><th>25.07</th><th>25.08</th><th>25.09</th><th>25.10</th><th>25.11</th><th>25.12</th><th>26.01</th><th>26.02</th><th>26.03</th><th>26.04</th><th>26.05</th><th>26.06</th><th>26.07</th><th>26.08</th><th>26.09</th><th>26.10</th><th>26.11</th>
       </tr></thead>
       <tbody id="data-tbody"></tbody>
     </table>
@@ -144,7 +144,7 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
     </div>
     <div id="side-panel" style="width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow-y:auto;min-height:300px;max-height:480px">
       <div id="side-rank">
-        <div style="padding:12px 14px 8px;font-size:11.5px;font-weight:700;font-family:'Noto Sans KR',sans-serif;color:#94a3b8;letter-spacing:.02em">최신 순위 (26.10)</div>
+        <div style="padding:12px 14px 8px;font-size:11.5px;font-weight:700;font-family:'Noto Sans KR',sans-serif;color:#94a3b8;letter-spacing:.02em" id="rank-label">최신 순위 (26.10)</div>
         <div id="rank-list" style="padding:0 14px 12px"></div>
       </div>
       <div id="side-detail" style="display:none">
@@ -220,34 +220,34 @@ tr.tier-t3 td.tier-cell{color:#6b7280}
   </div>
 </div>
 <script>
-const PERIODS = ["25.03","25.04","25.05","25.06","25.07","25.08","25.09","25.10","25.11","25.12","26.01","26.02","26.03","26.04","26.05","26.06","26.07","26.08","26.09","26.10"];
+const PERIODS = ["25.03","25.04","25.05","25.06","25.07","25.08","25.09","25.10","25.11","25.12","26.01","26.02","26.03","26.04","26.05","26.06","26.07","26.08","26.09","26.10","26.11"];
 const RAW = {
-  "인피녹스": [3120,2750,2760,2550,2250,2470,1780,2250,1850,1390,1470,2410,1930,1540,1690,2130,1550,2120,1580,1440],
-  "컬쳐캐피탈": [1410,1530,1790,1550,1940,1520,2010,3000,2820,2910,2670,3050,2400,2690,2270,2190,1890,2330,1940,1640],
-  "제로마켓": [1080,1370,850,880,750,740,1040,940,740,640,520,690,640,700,520,600,520,760,630,250],
-  "한텍마켓": [0,0,90,360,340,570,350,560,610,490,520,990,510,690,570,720,370,570,500,370],
-  "이지스퀘어": [580,1170,1040,460,390,490,410,670,496,601,581,2700,610,370,720,250,350,420,400,470],
-  "XM거래소": [null,107,73,39,83,179,195,418,820,630,540,810,470,330,290,230,220,310,260,260],
-  "DPrime": [null,null,null,null,null,0,20,140,380,370,410,260,290,230,170,170,210,220,160,90],
-  "아바트레이드": [null,280,112,100,165,173,141,313,278,180,120,100,250,193,120,60,40,110,200,70],
-  "RS파이낸스": [null,null,null,null,102,102,20,144,288,405,273,440,100,100,260,170,150,0,140,100],
-  "라이트파이낸스":[99,152,141,30,141,72,70,40,161,84,68,145,84,70,146,68,19,64,204,79],
-  "고마켓": [156,195,223,58,38,71,96,84,160,116,37,80,70,10,60,10,30,50,20,20],
-  "GFS마켓": [270,142,93,49,0,60,78,240,10,70,400,140,0,0,30,0,0,0,30,0],
-  "TMGM": [183,50,93,30,20,70,40,120,86,68,80,80,41,74,50,17,31,72,112,56],
-  "모네타마켓": [88,29,0,79,150,81,43,51,39,52,71,111,77,90,87,70,53,62,18,57],
-  "랜드프라임": [88,84,55,86,77,45,98,145,104,75,64,75,47,50,67,93,100,129,92,68],
-  "ATFX": [150,130,100,110,10,20,70,100,170,86,37,81,410,54,20,46,60,90,69,68],
-  "PUPrime": [30,40,35,34,31,91,69,59,25,79,132,80,124,85,88,27,51,69,74,47],
-  "엑스네스": [105,70,68,10,0,0,0,30,20,0,60,80,22,50,19,40,21,80,50,0],
-  "M4Markets": [null,null,null,null,112,270,23,41,41,18,0,20,60,12,23,20,0,66,0,0],
-  "트로이마켓": [null,null,null,null,7,20,90,40,30,70,25,92,16,49,25,128,43,20,50,0],
-  "AP마켓": [73,99,55,52,50,31,74,17,0,68,66,187,30,44,30,10,0,0,0,0],
-  "VTMarkets": [null,null,null,null,null,null,null,null,null,null,null,null,null,40,20,0,0,null,null,null],
-  "에임스캡": [null,null,null,null,10,0,16,0,0,0,20,0,0,0,0,0,0,0,0,0],
-  "덱시아마켓": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,45,258,150,70],
-  "xlence": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,4,4,5,6],
-  "오르비스 시큐리티즈": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,26,40,18,0],
+  "인피녹스": [3120,2750,2760,2550,2250,2470,1780,2250,1850,1390,1470,2410,1930,1540,1690,2130,1550,2120,1580,1440,1820],
+  "컬쳐캐피탈": [1410,1530,1790,1550,1940,1520,2010,3000,2820,2910,2670,3050,2400,2690,2270,2190,1890,2330,1940,1640,2010],
+  "제로마켓": [1080,1370,850,880,750,740,1040,940,740,640,520,690,640,700,520,600,520,760,630,250,250],
+  "한텍마켓": [0,0,90,360,340,570,350,560,610,490,520,990,510,690,570,720,370,570,500,370,390],
+  "이지스퀘어": [580,1170,1040,460,390,490,410,670,496,601,581,2700,610,370,720,250,350,420,400,470,310],
+  "XM거래소": [null,107,73,39,83,179,195,418,820,630,540,810,470,330,290,230,220,310,260,260,260],
+  "DPrime": [null,null,null,null,null,0,20,140,380,370,410,260,290,230,170,170,210,220,160,90,120],
+  "아바트레이드": [null,280,112,100,165,173,141,313,278,180,120,100,250,193,120,60,40,110,200,70,76],
+  "RS파이낸스": [null,null,null,null,102,102,20,144,288,405,273,440,100,100,260,170,150,0,140,100,30],
+  "라이트파이낸스":[99,152,141,30,141,72,70,40,161,84,68,145,84,70,146,68,19,64,204,79,43],
+  "고마켓": [156,195,223,58,38,71,96,84,160,116,37,80,70,10,60,10,30,50,20,20,38],
+  "GFS마켓": [270,142,93,49,0,60,78,240,10,70,400,140,0,0,30,0,0,0,30,0,30],
+  "TMGM": [183,50,93,30,20,70,40,120,86,68,80,80,41,74,50,17,31,72,112,56,28],
+  "모네타마켓": [88,29,0,79,150,81,43,51,39,52,71,111,77,90,87,70,53,62,18,57,45],
+  "랜드프라임": [88,84,55,86,77,45,98,145,104,75,64,75,47,50,67,93,100,129,92,68,580],
+  "ATFX": [150,130,100,110,10,20,70,100,170,86,37,81,410,54,20,46,60,90,69,68,50],
+  "PUPrime": [30,40,35,34,31,91,69,59,25,79,132,80,124,85,88,27,51,69,74,47,14],
+  "엑스네스": [105,70,68,10,0,0,0,30,20,0,60,80,22,50,19,40,21,80,50,0,0],
+  "M4Markets": [null,null,null,null,112,270,23,41,41,18,0,20,60,12,23,20,0,66,0,0,0],
+  "트로이마켓": [null,null,null,null,7,20,90,40,30,70,25,92,16,49,25,128,43,20,50,0,0],
+  "AP마켓": [73,99,55,52,50,31,74,17,0,68,66,187,30,44,30,10,0,0,0,0,0],
+  "VTMarkets": [null,null,null,null,null,null,null,null,null,null,null,null,null,40,20,0,0,null,null,null,null],
+  "에임스캡": [null,null,null,null,10,0,16,0,0,0,20,0,0,0,0,0,0,0,0,0,0],
+  "덱시아마켓": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,45,258,150,70,20],
+  "xlence": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,4,4,5,6,6],
+  "오르비스 시큐리티즈": [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,26,40,18,0,30],
 };
 const TIERS = {
   "인피녹스":"T1","컬쳐캐피탈":"T1","제로마켓":"T1","한텍마켓":"T1","이지스퀘어":"T1",
@@ -489,6 +489,39 @@ const EVENTS = {
       {text:"두바이 컴플라이언스 책임자 연봉 최대 42만 5천 달러, 키프로스 연봉은 14% 상승",url:"https://www.financemagnates.com/forex/dubais-compliance-chiefs-command-up-to-425k-cyprus-salaries-jump-14/"}
     ]
   },
+  20: {
+    issues:[
+      {type:"promo",text:"랜드프라임 — 68 → 580 (+752.9%)",url:""},
+      {type:"promo",text:"고마켓 — 20 → 38 (+90.0%)",url:""},
+      {type:"promo",text:"DPrime — 90 → 120 (+33.3%)",url:""},
+      {type:"news",text:"GFS마켓(0 → 30), 오르비스 시큐리티즈(0 → 30) 신규 유입 (상승률 순위에서는 제외)",url:""},
+      {type:"issue",text:"덱시아마켓 — 70 → 20 (-71.4%)",url:""},
+      {type:"issue",text:"PUPrime — 47 → 14 (-70.2%)",url:""},
+      {type:"issue",text:"RS파이낸스 — 100 → 30 (-70.0%)",url:""}
+    ],
+    brokerNews:[
+      {broker:"AVATrade",text:"새로운 자기매매(Prop Trading) 플랫폼 출시",url:"https://fxnewsgroup.com/forex-news/retail-forex/avatrade-launches-new-prop-trading-platform/"},
+      {broker:"M4Markets",text:"CEO \"기술 덕분에 거래는 쉬워졌지만, 거래 자체가 쉬워진 것은 아니다\"",url:"https://tradeinformer.com/guest-posts/m4markets-ceo-tech-has-made-it-easy-to-trade-but-it-hasnt-made-trading-easy"},
+      {broker:"FXT",text:"FXT AI 공개 — 계좌 안에서 24시간 함께하는 트레이딩 파트너",url:"https://fxtrading.com/kr/fxt-ai"},
+      {broker:"VTMarkets",text:"특별 입금 보너스 프로모션 (26.11.01~11.30)",url:"https://www.vt-promotions.asia/en-asia/promotions/exclusive-deposit-bonus/"},
+      {broker:"한텍마켓",text:"카피 트레이딩 기술 평가 — 한텍 마켓츠 CTO Vivek Mehta와의 대화",url:"https://fxnewsgroup.com/forex-news/platforms/evaluating-copy-trading-technology-a-conversation-with-hantec-markets/"},
+      {broker:"HFM",text:"HFM 코리아 공식 텔레그램 채널 오픈 기념 이벤트 (투썸플레이스 아메리카노 2잔 & 케이크 세트, 40명)",url:"https://t.me/s/hfmkorea"},
+      {broker:"XM",text:"#NayiShuruat 유튜브 콘테스트 개최",url:"https://www.forexpenguin.com/press-release/xm-unveils-nayishuruat-youtube-contest-win-next-gen-ai-smart-glasses-by-sharing-your-trading-lessons/"},
+      {broker:"XM",text:"오토시다마 복권 프로모션 — 총 상금 500만 달러 이상 (26.11.02~12.30)",url:"https://www.xmtrading.com/landing/otoshidama-promo-2026"},
+      {broker:"VTMarkets",text:"리얼리티 쇼 '골드컵 2026 아일랜드 파이널' 론칭",url:"https://www.vtmarketsglobal.com/press-release/vt-markets-launches-high-stakes-reality-show-gold-cup-2026-island-finale"},
+      {broker:"VTMarkets",text:"신규 프리미어 캐피털 리워드 프로그램 — 연 최대 19% 현금 리워드",url:"https://www.forexpenguin.com/press-release/vt-markets-offers-up-to-19-annualised-cash-rewards-through-new-premier-capital-rewards-programme/"},
+      {broker:"ATFX",text:"FiveWest와 파트너십 체결 — 남아프리카공화국 결제 인프라 강화",url:"https://www.atfx.com/en-za/about-us/company-news/atfx-group-partners-with-fivewest-to-strengthen-payments-infrastructure-in-south-africa"},
+      {broker:"STARTRADER",text:"블랙프라이데이 파워플레이 — 100 크레딧 보너스 쿠폰, 경품 4종 (26.11.23~12.04)",url:"https://www.startrader.com/black-friday-power-play"},
+      {broker:"한텍마켓",text:"MT5에서 신규 XAUUSD247 상품 출시 — 주말 금 거래 개시",url:"https://fxnewsgroup.com/forex-news/retail-forex/hantec-markets-opens-weekend-gold-trading-on-mt5-with-new-xauusd247-instrument/"}
+    ],
+    industry:[
+      {text:"PG사 페이허브, 해킹으로 2억원 유출 — 금감원 현장점검",url:"https://www.edaily.co.kr/News/Read?newsId=06048326645642112&mediaCodeNo=257"},
+      {text:"주간 리뷰: IG, 영국 도박 라이선스 취득 추진 · Plus500, 브라질 브로커 인수 예정",url:"https://www.financemagnates.com/forex/weekly-review-ig-seeks-uk-gambling-licence-plus500-to-acquire-brazilian-broker/"},
+      {text:"2026년 10월 기관 외환 거래량, 낮은 변동성 속에 7% 감소",url:"https://fxnewsgroup.com/forex-news/institutional/institutional-fx-volumes-slow-7-in-october-2026-amid-low-volatility/"},
+      {text:"바이낸스, 63억 달러 해킹 사건의 전말 공개",url:"https://fxnewsgroup.com/forex-news/cryptocurrency/binance-unveils-how-6-3-billion-hack-was-done/"},
+      {text:"바이낸스와 국내 코인거래소들의 동향",url:"https://www.chaincatcher.com/ko/article/2303885"}
+    ]
+  },
 };
 const EVENT_LINES = {
   6: { label: "M4Markets\n카피트레이딩 사고", color: "#f87171" },
@@ -497,10 +530,18 @@ const EVENT_LINES = {
   16: { label: "INFINOX\nAdmirals 협상", color: "#fbbf24" },
   17: { label: "덱시아마켓\n급등(+473%)", color: "#fbbf24" },
   18: { label: "라이트파이낸스\n급등(+196%)", color: "#fbbf24" },
-  19: { label: "AvaTrade\nFXCM 인수", color: "#fbbf24" }
+  19: { label: "AvaTrade\nFXCM 인수", color: "#fbbf24" },
+  20: { label: "랜드프라임\n급등(+753%)", color: "#fbbf24" }
 };
 const PALETTE = ["#38bdf8","#34d399","#f59e0b","#a78bfa","#f87171","#22d3ee","#86efac","#fcd34d","#c084fc","#fca5a5","#67e8f9","#6ee7b7","#fde68a","#d8b4fe","#fecaca","#e879f9","#4ade80","#fb923c","#60a5fa","#a3e635","#f472b6","#94a3b8","#2dd4bf","#facc15","#818cf8","#e2e8f0"];
 const brokerList = Object.keys(RAW);
+// 트래픽 수치가 하나라도 들어 있는 가장 최근 기간 (소식만 먼저 추가된 기간은 건너뜀)
+function dataLastIdx() {
+  for (let i = PERIODS.length - 1; i >= 0; i--) {
+    if (brokerList.some(function (b) { return RAW[b][i] !== null && RAW[b][i] !== undefined; })) return i;
+  }
+  return PERIODS.length - 1;
+}
 const colorMap = {};
 brokerList.forEach((b,i) => colorMap[b] = PALETTE[i % PALETTE.length]);
 function heatColor(val, mn, mx) {
@@ -646,10 +687,13 @@ function buildSideHTML(di, dataPoints) {
       }).join('')
       + '</div>';
   }
-  return '<div style="padding:6px 14px">' + valRows + '</div>' + issueHTML + brokerHTML + industryHTML;
+  const pendingNote = (!valRows && di > dataLastIdx()) ? '<div style="font-size:11px;color:#94a3b8;padding:4px 0">트래픽 수치는 집계 전입니다 (소식만 먼저 표시)</div>' : '';
+  return '<div style="padding:6px 14px">' + (valRows || pendingNote) + '</div>' + issueHTML + brokerHTML + industryHTML;
 }
 function updateRankPanel() {
-  const lastIdx = PERIODS.length - 1;
+  const lastIdx = dataLastIdx();
+  const rankLabel = document.getElementById('rank-label');
+  if (rankLabel) rankLabel.textContent = '최신 순위 (' + PERIODS[lastIdx] + ')';
   const rows = brokerList
     .filter(function(b){ return activeSet.has(b); })
     .map(function(b){ return {b:b, curr:RAW[b][lastIdx]||0, prev:RAW[b][lastIdx-1]||0}; })
@@ -755,6 +799,7 @@ const endLabelPlugin = {
   id: 'endLabels',
   afterDatasetsDraw: function(chartInst) {
     const ctx = chartInst.ctx;
+    const items = [];
     chartInst.data.datasets.forEach(function(ds, i) {
       const meta = chartInst.getDatasetMeta(i);
       if (meta.hidden) return;
@@ -765,12 +810,39 @@ const endLabelPlugin = {
       if (lastIdx < 0) return;
       const pt = meta.data[lastIdx];
       if (!pt) return;
+      items.push({ ds: ds, pt: pt, text: ds.label + ' ' + (ds.data[lastIdx]||0).toLocaleString(), y: pt.y });
+    });
+    // 값이 비슷한 브로커끼리 라벨이 겹치지 않도록 위에서부터 최소 간격(13px)을 확보
+    const GAP = 13;
+    items.sort(function(a, b){ return a.pt.y - b.pt.y; });
+    for (let k = 1; k < items.length; k++) {
+      if (items[k].y - items[k-1].y < GAP) items[k].y = items[k-1].y + GAP;
+    }
+    // 아래로 밀린 결과가 차트 하단을 넘으면 전체를 위로 끌어올림
+    const bottomLimit = chartInst.chartArea.bottom + 6;
+    if (items.length && items[items.length-1].y > bottomLimit) {
+      let shift = items[items.length-1].y - bottomLimit;
+      items[items.length-1].y = bottomLimit;
+      for (let k = items.length - 2; k >= 0; k--) {
+        if (items[k+1].y - items[k].y < GAP) items[k].y = items[k+1].y - GAP;
+      }
+    }
+    items.forEach(function(it) {
       ctx.save();
       ctx.font = "bold 10px 'IBM Plex Mono', monospace";
-      ctx.fillStyle = ds.borderColor;
+      ctx.fillStyle = it.ds.borderColor;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(ds.label + ' ' + (ds.data[lastIdx]||0).toLocaleString(), pt.x + 8, pt.y);
+      if (Math.abs(it.y - it.pt.y) > 2) {
+        // 라벨이 점에서 벗어난 경우 얇은 연결선으로 어느 점의 라벨인지 표시
+        ctx.strokeStyle = it.ds.borderColor + '88';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(it.pt.x + 5, it.pt.y);
+        ctx.lineTo(it.pt.x + 8, it.y);
+        ctx.stroke();
+      }
+      ctx.fillText(it.text, it.pt.x + 10, it.y);
       ctx.restore();
     });
   }
@@ -790,7 +862,7 @@ const blinkPlugin = {
   id: 'blinkTop3',
   afterDatasetsDraw: function(chartInst) {
     const ctx = chartInst.ctx;
-    const sortIdx = PERIODS.length - 1;
+    const sortIdx = dataLastIdx();
     const ranked = brokerList
       .filter(function(b){ return activeSet.has(b); })
       .map(function(b){ return {b:b, val:RAW[b][sortIdx]||0}; })
@@ -931,18 +1003,20 @@ document.addEventListener('click', function(e) {
 let totalChart = null;
 function buildTotalChart() {
   const totals = PERIODS.map(function(p, i) {
+    const hasData = brokerList.some(function (b) { return RAW[b][i] !== null && RAW[b][i] !== undefined; });
+    if (!hasData) return null; // 소식만 먼저 추가된 기간 — 합계를 0으로 그리지 않음
     return brokerList.reduce(function(sum, b) {
       const v = RAW[b][i];
       return sum + (v !== null && v !== undefined ? v : 0);
     }, 0);
   });
   const changes = totals.map(function(v, i) {
-    if (i === 0) return null;
+    if (i === 0 || v === null) return null;
     const prev = totals[i-1];
     return prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : null;
   });
   // 상위 3개사 점유율 (HHI 유사 집중도 지표) — 브로커별 값 재정렬만 하면 되므로 계산 비용 낮음
-  const latestIdx = PERIODS.length - 1;
+  const latestIdx = dataLastIdx();
   const prevIdx = latestIdx - 1;
   const top3Share = PERIODS.map(function(p, i) {
     if (!totals[i]) return null;
@@ -968,9 +1042,10 @@ function buildTotalChart() {
         ? '<div style="font-size:11.5px;font-weight:600;color:' + (shareDelta >= 0 ? '#f87171' : '#34d399') + ';margin-bottom:6px">' + (shareDelta >= 0 ? '▲' : '▼') + ' 전월(' + PERIODS[prevIdx] + ') 대비 ' + Math.abs(shareDelta).toFixed(1) + 'p ' + (shareDelta >= 0 ? '집중 심화' : '분산') + '</div>'
         : '<div style="margin-bottom:6px"></div>')
     + '<div style="font-size:12px;font-weight:600;color:#e2e8f0">' + top3NamesHTML + '</div>';
-  const avg = Math.round(totals.reduce(function(a,b){return a+b;},0) / totals.length);
-  const totalMax = Math.max.apply(null, totals);
-  const totalMin = Math.min.apply(null, totals);
+  const validTotals = totals.filter(function(v){ return v !== null; });
+  const avg = Math.round(validTotals.reduce(function(a,b){return a+b;},0) / validTotals.length);
+  const totalMax = Math.max.apply(null, validTotals);
+  const totalMin = Math.min.apply(null, validTotals);
   const ctx = document.getElementById('total-chart').getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, 380);
   grad.addColorStop(0, 'rgba(56,189,248,0.35)');
@@ -1020,10 +1095,11 @@ function buildTotalChart() {
       const meta = chart.getDatasetMeta(0);
       meta.data.forEach(function(pt, i) {
         const v = totals[i];
+        if (v === null || v === undefined) return;
         const chg = changes[i];
         const isMax = v === totalMax;
         const isMin = v === totalMin;
-        const showLabel = isMax || isMin || i === totals.length - 1 || i === 0;
+        const showLabel = isMax || isMin || i === latestIdx || i === 0;
         if (chg !== null) {
           const pct = parseFloat(chg);
           ctx2.save();
@@ -1097,6 +1173,7 @@ function buildTotalChart() {
               if (ctx.datasetIndex === 1) return '평균: ' + avg.toLocaleString();
               const i = ctx.dataIndex;
               const chg = changes[i];
+              if (ctx.raw === null) return '트래픽 수치 집계 전';
               const chgStr = chg !== null ? ' (' + (chg >= 0 ? '▲+' : '▼') + chg + '%)' : '';
               return '합계: ' + ctx.raw.toLocaleString() + chgStr;
             }
@@ -1127,8 +1204,13 @@ function buildTotalChart() {
     }
   });
   const statsBody = document.getElementById('total-stats-body');
-  const maxVal = Math.max.apply(null, totals);
+  const maxVal = Math.max.apply(null, validTotals);
   statsBody.innerHTML = totals.map(function(v, i) {
+    if (v === null) {
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #1a1f2e">'
+        + '<span style="font-size:10px;font-family:\\"IBM Plex Mono\\",monospace;color:#e2e8f0">' + PERIODS[i] + '</span>'
+        + '<span style="font-size:10px;color:#6b7280">집계 전</span></div>';
+    }
     const chg = changes[i];
     const chgHTML = chg !== null
 ? '<span style="font-size:10px;color:' + (chg >= 0 ? '#34d399' : '#f87171') + '">' + (chg >= 0 ? '+' : '') + chg + '%</span>'
